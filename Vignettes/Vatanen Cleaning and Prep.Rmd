@@ -1,0 +1,39 @@
+---
+title: "Vatanen Cleaning and Analysis"
+output: html_notebook
+---
+
+
+```{r}
+library(ggplot2)
+library(gridExtra)
+library(dada2)
+library(phyloseq)
+library(DECIPHER)
+library(phangorn)
+```
+```{r}
+set.seed(29778505)
+miseq_path <- "./data/Vatanen"
+list.files(miseq_path)
+```
+
+```{r}
+fnPairs <- sort(list.files(miseq_path, pattern=".fna.gz"))
+fnPairs <- file.path(miseq_path, fnPairs)
+fnPairs[1:3]
+```
+
+# Need to gunzip files
+
+```{r}
+library(R.utils)
+gunzip(fnPairs[1], remove = FALSE)
+```
+
+```{r}
+library(Biostrings)
+test <- read.FASTA("./data/Vatanen/E000823_1.8.fna")
+```
+
+I'm stuck here because I have no idea how to work with a fasta file.

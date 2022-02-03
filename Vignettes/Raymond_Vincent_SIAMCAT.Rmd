@@ -1,0 +1,262 @@
+---
+title: "Vincent + Raymond Second Attempt"
+output: html_notebook
+---
+
+# Load required packages
+
+SIAMCAT is used for analysis
+
+```{r}
+library(curatedMetagenomicData)
+library(dplyr)
+library(mia)
+library(SIAMCAT)
+library(stringr)
+```
+
+# Filter cMD metadata table for Vincent and Raymond
+```{r}
+meta <- curatedMetagenomicData::sampleMetadata
+meta$study_name %>% table()
+
+submeta <- meta %>% filter(study_name=="VincentC_2016" | study_name=="RaymondF_2016")
+submeta$study_name %>% table()
+```
+
+# Download data from cMD for matching metadata
+Table should match the metadata table
+```{r}
+rayvince <- returnSamples(submeta, "relative_abundance")
+colData(rayvince)$study_name %>% table()
+```
+
+# Proportions in cMD are presented as percentages. Need to be decimals. Divide by 100.
+```{r}
+assay(rayvince) <- assay(rayvince)/100
+```
+
+#Subset to just Raymond post-exposure cases
+
+There should be 24 data points (18 cases, 6 controls)
+```{r}
+ray <- subset(rayvince, select =colData(rayvince)$study_name=="RaymondF_2016")
+#ray <- subset(rayvince, select =colData(rayvince)$study_name=="RaymondF_2016" &
+              #  colData(rayvince)$days_from_first_collection == 7)
+
+colData(ray)$study_name %>% table()
+```
+```{r}
+phyloray <- makePhyloseqFromTreeSummarizedExperiment(ray, abund_values = "relative_abundance")
+```
+# Extract sample and rel abundance tables
+
+Not sure that this is necessary. I think SIAMCAT can just read the phyloseq object.
+
+```{r}
+sample.phyloray <- sample_data(phyloray)
+feat.phyloray <- otu_table(phyloray)
+```
+
+# Remove duplicate variables
+
+Remove two variables that are identical with condition of interest as they were causing issues down the line
+
+```{r}
+sample.phyloray <- sample.phyloray[, -which(names(sample.phyloray) %in% c("antibiotics_family", "antibiotics_current_use"))]
+
+```
+
+# Set variable of interest
+
+```{r}
+label.ray <- create.label(meta=sample.phyloray, label="study_condition", case="cephalosporins")
+```
+
+# Create SIAMCAT object
+
+```{r}
+sc.obj <- siamcat(feat=feat.phyloray, label=label.ray, meta=sample.phyloray)
+```
+
+# Filter by abundance
+
+Cutoff is set at 0.001. Might want to experiment with this.
+
+```{r}
+sc.filt <- filter.features(sc.obj, filter.method = "abundance", cutoff = 0.001)
+```
+
+# Check associations
+
+```{r}
+
+sc.assc <- check.associations(
+  sc.filt,
+  sort.by = 'fc',
+  alpha = 0.05,
+  fn.plot = 'assocation_plots.pdf',
+  mult.corr = "fdr",
+  feature.type = "filtered",
+  detect.lim = 10 ^-6,
+  plot.type = "quantile.box",
+  panels = c("fc", "prevalence", "auroc"))
+```
+
+# Check Confounders
+
+This checks confounders--does not work if any variable 100% matches condition of interest which is why we removed those two other variables earlier.
+
+```{r}
+
+sc.conf <- check.confounders(
+  sc.filt,
+  fn.plot = 'confounder_plots.pdf',
+  meta.in = NULL,
+  feature.type = 'filtered', verbose = 1
+)
+
+```
+
+# Normalization
+
+I'm guessing due to ranked unit normalization this is using Rankits
+
+```{r}
+sc.norm <- normalize.features(
+  sc.filt,
+  norm.method = "rank.unit"
+  )
+```
+
+# Prepare to run machine learning task
+
+Split the data, not sure the difference between folds and resamples and how to select the right number--right now I just picked numbers that didn't give an error message
+
+```{r}
+
+sc.split <-  create.data.split(
+  sc.norm,
+  num.folds = 6,
+  num.resample = 2,
+  inseparable = "subject_id"
+)
+
+```
+
+# Random Forest
+
+Lasso also seems to work--others gave weird results (weird ROCs)
+
+```{r}
+
+sc.mod <- train.model(
+  sc.split,
+  method = "randomForest"
+)
+
+sc.pred <- make.predictions(sc.mod)
+pred_matrix <- pred_matrix(sc.pred)
+
+```
+
+# View ROC and PR curve
+
+```{r}
+sc.eval <- evaluate.predictions(sc.pred)
+model.evaluation.plot(sc.eval)
+```
+
+
+# Export final model interpretation plot as PDF
+
+```{r}
+model.interpretation.plot(
+sc.eval,
+fn.plot = 'interpretation.pdf',
+consens.thres = 0.01,
+limits = c(-3, 3),
+heatmap.type = 'zscore'
+)
+```
+
+```{r}
+vince <- subset(rayvince, select=colData(rayvince)$study_name=="VincentC_2016")
+colData(vince)$abx <- "control"
+#colData(vince)$abx[colData(vince)$antibiotics_family %>% str_detect("cephalosporins")] <- "cephalosporins"
+#colData(vince)$abx[!is.na(colData(vince)$antibiotics_family)] <- "cephalosporins"
+colData(vince)$abx[colData(vince)$antibiotics_family %>% str_detect("fluoroquinolones")] <- "cephalosporins"
+colData(vince)$abx %>% table()
+```
+
+```{r}
+phylovince <- makePhyloseqFromTreeSummarizedExperiment(vince, abund_values = "relative_abundance")
+```
+
+```{r}
+sample.phylovince <- sample_data(phylovince)
+feat.phylovince <- otu_table(phylovince)
+```
+
+```{r}
+sample.phylovince <- sample.phylovince[, -which(names(sample.phylovince) %in% c("antibiotics_family", "antibiotics_current_use"))]
+```
+
+```{r}
+label.vince <- create.label(meta=sample.phylovince, label="abx", case="cephalosporins")
+```
+
+```{r}
+```
+
+
+```{r}
+sc.obj.test <- siamcat(feat=feat.phylovince, label=label.vince, meta=sample.phylovince)
+```
+
+
+```{r}
+sc.obj.filt <- filter.features(sc.obj.test, filter.method = "abundance", cutoff = 0)
+sc.obj.norm <- normalize.features(sc.obj.filt, norm.param=norm_params(sc.eval))
+
+sc.obj.test <- make.predictions(sc.eval, sc.obj.norm)
+sc.obj.test <- evaluate.predictions(sc.obj.test)
+model.evaluation.plot(sc.obj.test)
+
+```
+
+```{r}
+sc.vince.split <-  create.data.split(
+  sc.obj.norm,
+  num.folds = 6,
+  num.resample = 2,
+  inseparable = "subject_id"
+)
+
+sc.vince.mod <- train.model(
+  sc.vince.split,
+  method = "randomForest"
+)
+
+sc.vince.pred <- make.predictions(sc.vince.mod)
+pred_matrix_vince <- pred_matrix(sc.vince.pred)
+
+sc.vince.eval <- evaluate.predictions(sc.vince.pred)
+model.evaluation.plot(sc.vince.eval)
+
+```
+
+# Take the Vincent dataset and filter down to either the last assessment if no abx or the abx assessment
+
+# Figure out participant IDs that were cases and controls
+```{r}
+
+library(dplyr)
+dsVince <- colData(vince) %>% as.data.frame()
+dsVince$abx <- 0
+dsVince$abx[!is.na(dsVince$antibiotics_family)] <- 1
+
+cases <- dsVince %>% group_by(subject_id) %>% summarize(abx=sum(abx))
+
+```
+
