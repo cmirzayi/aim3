@@ -184,8 +184,8 @@ heatmap.type = 'zscore'
 vince <- subset(rayvince, select=colData(rayvince)$study_name=="VincentC_2016")
 colData(vince)$abx <- "control"
 #colData(vince)$abx[colData(vince)$antibiotics_family %>% str_detect("cephalosporins")] <- "cephalosporins"
-#colData(vince)$abx[!is.na(colData(vince)$antibiotics_family)] <- "cephalosporins"
-colData(vince)$abx[colData(vince)$antibiotics_family %>% str_detect("fluoroquinolones")] <- "cephalosporins"
+colData(vince)$abx[!is.na(colData(vince)$antibiotics_family)] <- "cephalosporins"
+#colData(vince)$abx[colData(vince)$antibiotics_family %>% str_detect("fluoroquinolones")] <- "cephalosporins"
 colData(vince)$abx %>% table()
 ```
 
@@ -207,13 +207,8 @@ label.vince <- create.label(meta=sample.phylovince, label="abx", case="cephalosp
 ```
 
 ```{r}
-```
-
-
-```{r}
 sc.obj.test <- siamcat(feat=feat.phylovince, label=label.vince, meta=sample.phylovince)
 ```
-
 
 ```{r}
 sc.obj.filt <- filter.features(sc.obj.test, filter.method = "abundance", cutoff = 0)
@@ -260,3 +255,60 @@ cases <- dsVince %>% group_by(subject_id) %>% summarize(abx=sum(abx))
 
 ```
 
+# Genus-Level Analysis
+
+```{r}
+rayvincegenus <- agglomerateByRank(rayvince, rank="genus")
+rayg <- subset(rayvincegenus, select =colData(rayvince)$study_name=="RaymondF_2016")
+phyloray <- makePhyloseqFromTreeSummarizedExperiment(rayg, abund_values = "relative_abundance")
+sample.phyloray <- sample_data(phyloray)
+feat.phyloray <- otu_table(phyloray)
+sample.phyloray <- sample.phyloray[, -which(names(sample.phyloray) %in% c("antibiotics_family", "antibiotics_current_use"))]
+label.ray <- create.label(meta=sample.phyloray, label="study_condition", case="cephalosporins")
+sc.obj <- siamcat(feat=feat.phyloray, label=label.ray, meta=sample.phyloray)
+sc.filt <- filter.features(sc.obj, filter.method = "abundance", cutoff = 0.001)
+sc.norm <- normalize.features(
+  sc.filt,
+  norm.method = "rank.unit"
+  )
+sc.norm <- normalize.features(
+  sc.filt,
+  norm.method = "rank.unit"
+  )
+sc.split <-  create.data.split(
+  sc.norm,
+  num.folds = 6,
+  num.resample = 2,
+  inseparable = "subject_id"
+)
+sc.mod <- train.model(
+  sc.split,
+  method = "randomForest"
+)
+
+sc.pred <- make.predictions(sc.mod)
+pred_matrix <- pred_matrix(sc.pred)
+sc.eval <- evaluate.predictions(sc.pred)
+model.evaluation.plot(sc.eval)
+```
+
+# Genus-level model
+```{r}
+vinceg <- subset(rayvincegenus, select=colData(rayvince)$study_name=="VincentC_2016")
+colData(vinceg)$abx <- "control"
+#colData(vince)$abx[colData(vince)$antibiotics_family %>% str_detect("cephalosporins")] <- "cephalosporins"
+colData(vinceg)$abx[!is.na(colData(vinceg)$antibiotics_family)] <- "cephalosporins"
+#colData(vince)$abx[colData(vince)$antibiotics_family %>% str_detect("fluoroquinolones")] <- "cephalosporins"
+phylovince <- makePhyloseqFromTreeSummarizedExperiment(vinceg, abund_values = "relative_abundance")
+sample.phylovince <- sample_data(phylovince)
+feat.phylovince <- otu_table(phylovince)
+sample.phylovince <- sample.phylovince[, -which(names(sample.phylovince) %in% c("antibiotics_family", "antibiotics_current_use"))]
+label.vince <- create.label(meta=sample.phylovince, label="abx", case="cephalosporins")
+sc.obj.test <- siamcat(feat=feat.phylovince, label=label.vince, meta=sample.phylovince)
+sc.obj.filt <- filter.features(sc.obj.test, filter.method = "abundance", cutoff = 0)
+sc.obj.norm <- normalize.features(sc.obj.filt, norm.param=norm_params(sc.eval))
+
+sc.obj.test <- make.predictions(sc.eval, sc.obj.norm)
+sc.obj.test <- evaluate.predictions(sc.obj.test)
+model.evaluation.plot(sc.obj.test)
+```
