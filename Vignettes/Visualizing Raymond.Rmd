@@ -1,0 +1,106 @@
+---
+title: "Raymond Spaghetti Plots and PCOA"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+```{r}
+library(curatedMetagenomicData)
+library(dplyr)
+library(mia)
+library(SIAMCAT)
+library(stringr)
+library(ggplot2)
+```
+
+
+# Filter cMD metadata table for Vincent and Raymond
+```{r}
+meta <- curatedMetagenomicData::sampleMetadata
+meta$study_name %>% table()
+
+submeta <- meta %>% filter(study_name=="VincentC_2016" | study_name=="RaymondF_2016")
+submeta$study_name %>% table()
+```
+
+# Download data from cMD for matching metadata
+Table should match the metadata table
+```{r}
+rayvince <- returnSamples(submeta, "relative_abundance")
+colData(rayvince)$study_name %>% table()
+```
+
+# Proportions in cMD are presented as percentages. Need to be decimals. Divide by 100.
+```{r}
+assay(rayvince) <- assay(rayvince)/100
+```
+
+#Subset to just Raymond post-exposure cases
+
+There should be 24 data points (18 cases, 6 controls)
+```{r}
+ray <- subset(rayvince, select =colData(rayvince)$study_name=="RaymondF_2016")
+#ray <- subset(rayvince, select =colData(rayvince)$study_name=="RaymondF_2016" &
+              #  colData(rayvince)$days_from_first_collection == 7)
+
+colData(ray)$study_name %>% table()
+```
+
+
+```{r}
+library(microbiomeutilities)
+```
+
+```{r}
+cases <- colData(ray)$subject_id[colData(ray)$study_condition=="cephalosporins"] %>% unique()
+colData(ray)$study_condition[colData(ray)$subject_id %in% cases] <- "cephalosporins"
+raybl <- subset(ray, select=colData(ray)$days_from_first_collection == 0)
+# relabel cases labeled as controls at bl
+
+
+phyloraybl <- makePhyloseqFromTreeSummarizedExperiment(raybl, abund_values = "relative_abundance")
+ord_unifrac <- ordinate(phyloraybl, method = "PCoA", distance = "wunifrac") 
+ord_unifrac_un <- ordinate(phyloraybl, method = "PCoA", distance = "unifrac")   
+#Plot ordinations
+a <- plot_ordination(phyloraybl, ord_unifrac, color = "study_condition") + geom_point(size = 2) + scale_fill_continuous(guide = guide_legend()) +
+    theme(legend.position="bottom")
+b <- plot_ordination(phyloraybl, ord_unifrac_un, color = "study_condition") + geom_point(size = 2) + scale_fill_continuous(guide = guide_legend()) +
+    theme(legend.position="bottom")
+cowplot::plot_grid(a, b, nrow = 1, ncol = 2, scale = .9, labels = c("Weighted", "Unweighted"))
+
+```
+```{r}
+raypost <- subset(ray, select=colData(ray)$days_from_first_collection == 7)
+# relabel cases labeled as controls at bl
+
+
+phyloraypost <- makePhyloseqFromTreeSummarizedExperiment(raypost, abund_values = "relative_abundance")
+ord_unifrac <- ordinate(phyloraypost, method = "PCoA", distance = "wunifrac") 
+ord_unifrac_un <- ordinate(phyloraypost, method = "PCoA", distance = "unifrac")   
+#Plot ordinations
+a <- plot_ordination(phyloraypost, ord_unifrac, color = "study_condition") + geom_point(size = 2) + scale_fill_continuous(guide = guide_legend()) +
+    theme(legend.position="bottom")
+b <- plot_ordination(phyloraypost, ord_unifrac_un, color = "study_condition") + geom_point(size = 2) + scale_fill_continuous(guide = guide_legend()) +
+    theme(legend.position="bottom")
+cowplot::plot_grid(a, b, nrow = 1, ncol = 2, scale = .9, labels = c("Weighted", "Unweighted"))
+
+```
+```{r}
+ray90 <- subset(ray, select=colData(ray)$days_from_first_collection == 90)
+# relabel cases labeled as controls at bl
+
+
+phyloray90 <- makePhyloseqFromTreeSummarizedExperiment(ray90, abund_values = "relative_abundance")
+ord_unifrac <- ordinate(phyloray90, method = "PCoA", distance = "wunifrac") 
+ord_unifrac_un <- ordinate(phyloray90, method = "PCoA", distance = "unifrac")   
+#Plot ordinations
+a <- plot_ordination(phyloray90, ord_unifrac, color = "study_condition") + geom_point(size = 2) + scale_fill_continuous(guide = guide_legend()) +
+    theme(legend.position="bottom")
+b <- plot_ordination(phyloray90, ord_unifrac_un, color = "study_condition") + geom_point(size = 2)+ scale_fill_continuous(guide = guide_legend()) +
+    theme(legend.position="bottom")
+cowplot::plot_grid(a, b, nrow = 1, ncol = 2, scale = 1, labels = c("Weighted", "Unweighted"))
+
+```
+
