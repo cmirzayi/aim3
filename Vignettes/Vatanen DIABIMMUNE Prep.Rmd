@@ -61,7 +61,9 @@ metaphlanToPhyloseq <- function(
 ```{r}
 vatMeta <- read_xls("~/aim3/data/vatanenmeta.xls")
 vatTax <- read.table("~/aim3/data/vatanentaxprof.txt", header = TRUE, row.names=1)
-phyloVat <- metaphlanToPhyloseq(vatTax)
+vatAbx <- read.csv("~/aim3/data/diabimmune.csv", header = TRUE)
+colnames(vatAbx) <- c("sample", "abx_since_last", "class")
+
 ```
 
 # Looks like we gotta fix the sample names in vatTax
@@ -75,11 +77,79 @@ long <- data.frame(subject=parts, Assessment=assess, sample=newcols)
 
 ```{r}
 vatMetaLong <- as.data.frame(right_join(vatMeta, long))
-rownames(vatMetaLong) <- vatMetaLong$sample
+vatMetaFinal <- inner_join(vatAbx, vatMetaLong)
+rownames(vatMetaFinal) <- vatMetaFinal$sample
 colnames(vatTax) <- newcols
 ```
 
 ```{r}
-phyloVat <- metaphlanToPhyloseq(vatTax, metadat=vatMetaLong)
+phyloVat <- metaphlanToPhyloseq(vatTax, metadat=vatMetaFinal)
 ```
+
+```{r}
+library(curatedMetagenomicData)
+library(dplyr)
+library(mia)
+library(SIAMCAT)
+library(stringr)
+```
+
+```{r}
+label.vat <- create.label(meta=sample_data(phyloVat), label="abx_since_last", case="Yes")
+sc.obj <- siamcat(feat=otu_table(phyloVat), label=label.vat, meta=sample_data(phyloVat))
+```
+
+ Filter by abundance
+
+Cutoff is set at 0.001. Might want to experiment with this.
+
+```{r}
+sc.filt <- filter.features(sc.obj, filter.method = "abundance", cutoff = 0.001)
+```
+
+# Normalization
+
+I'm guessing due to ranked unit normalization this is using Rankits
+
+```{r}
+sc.norm <- normalize.features(
+  sc.filt,
+  norm.method = "rank.unit"
+  )
+```
+
+# Prepare to run machine learning task
+
+Split the data, not sure the difference between folds and resamples and how to select the right number--right now I just picked numbers that didn't give an error message
+
+```{r}
+
+sc.split <-  create.data.split(
+  sc.norm,
+  num.folds = 6,
+  num.resample = 2,
+  inseparable = "sample"
+)
+
+```
+
+# Random Forest
+
+Lasso also seems to work--others gave weird results (weird ROCs)
+
+```{r}
+
+sc.mod <- train.model(
+  sc.split,
+  method = "randomForest"
+)
+
+sc.pred <- make.predictions(sc.mod)
+pred_matrix <- pred_matrix(sc.pred)
+
+sc.eval <- evaluate.predictions(sc.pred)
+model.evaluation.plot(sc.eval)
+
+```
+
 

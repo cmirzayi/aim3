@@ -13,6 +13,7 @@ library(dplyr)
 library(mia)
 library(SIAMCAT)
 library(stringr)
+library(ggplot2)
 ```
 
 # Filter cMD metadata table for Vincent and Raymond
@@ -166,6 +167,17 @@ pred_matrix <- pred_matrix(sc.pred)
 sc.eval <- evaluate.predictions(sc.pred)
 model.evaluation.plot(sc.eval)
 ```
+# Prediction Spaghetti Plots
+```{r}
+library(stringr)
+spag <- data.frame(pred_matrix, days=rownames(pred_matrix) %>% str_extract(pattern="[EC]\\w*") %>% str_sub(start=2) %>% as.integer(), subj = rownames(pred_matrix) %>% str_extract("[P]\\d{1,2}"))
+colnames(spag) <- c("Predicted Probability", "CV_rep2", "Days", "subj")
+
+ggplot(data=spag) + geom_line(aes(x=Days, y=`Predicted Probability`, group=subj, color=subj)) + geom_boxplot(aes(x=Days,y=`Predicted Probability`, group=Days, alpha = 1)) + theme_minimal() +  theme(legend.position="none")
+
+
+```
+
 
 
 # Export final model interpretation plot as PDF
