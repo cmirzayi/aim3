@@ -1,0 +1,75 @@
+---
+title: "Vincent + Raymond Second Attempt"
+output: html_notebook
+---
+
+# Load required packages
+
+SIAMCAT is used for analysis
+
+```{r}
+library(curatedMetagenomicData)
+library(dplyr)
+library(mia)
+library(tidymodels)
+library(stringr)
+library(ggplot2)
+library(dotwhisker)
+```
+
+# Filter cMD metadata table for Vincent and Raymond
+```{r}
+meta <- curatedMetagenomicData::sampleMetadata
+meta$study_name %>% table()
+
+submeta <- meta %>% filter(study_name=="VincentC_2016" | study_name=="RaymondF_2016")
+submeta$study_name %>% table()
+```
+
+# Download data from cMD for matching metadata
+Table should match the metadata table
+```{r}
+rayvince <- returnSamples(submeta, "relative_abundance")
+colData(rayvince)$study_name %>% table()
+```
+
+# Proportions in cMD are presented as percentages. Need to be decimals. Divide by 100.
+```{r}
+assay(rayvince) <- assay(rayvince)/100
+```
+
+#Subset to just Raymond post-exposure cases
+
+There should be 24 data points (18 cases, 6 controls)
+```{r}
+ray <- subset(rayvince, select =colData(rayvince)$study_name=="RaymondF_2016")
+#ray <- subset(rayvince, select =colData(rayvince)$study_name=="RaymondF_2016" &
+              #  colData(rayvince)$days_from_first_collection == 7)
+
+colData(ray)$study_name %>% table()
+```
+```{r}
+rayclass <- agglomerateByRank(ray, "class")
+phylorayclass <- makePhyloseqFromTreeSummarizedExperiment(rayclass, abund_values = "relative_abundance")
+```
+
+```{r}
+rayotut <- otu_table(phylorayclass) %>% t() %>%  data.frame() %>% rownames_to_column()
+raysam <- sample_data(phylorayclass) %>% data.frame() %>% rownames_to_column()
+raycombo <- inner_join(raysam, rayotut)
+raycombo$study_condition <- as.factor(raycombo$study_condition)
+lm_mod <- logistic_reg() %>% set_engine("glm")
+lm_fit <- lm_mod %>% fit(study_condition ~ phylum.Proteobacteria + class.Bacteroidia + class.Coriobacteriia, data=raycombo)
+tidy(lm_fit) %>% 
+  dwplot(dot_args = list(size = 2, color = "black"),
+         whisker_args = list(color = "black"),
+         vline = geom_vline(xintercept = 0, colour = "grey50", linetype = 2))
+```
+```{r}
+new <- expand.grid(phylum.Proteobacteria = c(0,0.25,0.50,0.75),
+                   class.Bacteroidia = c(0,0.25,0.50,0.75),
+                   class.Coriobacteriia = c(0,0.25,0.50,0.75)
+                   )
+predict(lm_fit, new_data = new, type="conf_int")
+```
+
