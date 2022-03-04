@@ -15,6 +15,7 @@ library(tidymodels)
 library(stringr)
 library(ggplot2)
 library(dotwhisker)
+library(biobroom)
 ```
 
 # Filter cMD metadata table for Vincent and Raymond
@@ -49,27 +50,76 @@ ray <- subset(rayvince, select =colData(rayvince)$study_name=="RaymondF_2016")
 colData(ray)$study_name %>% table()
 ```
 ```{r}
-rayclass <- agglomerateByRank(ray, "class")
-phylorayclass <- makePhyloseqFromTreeSummarizedExperiment(rayclass, abund_values = "relative_abundance")
+raytidy <- tidy(ray, addPheno = TRUE)
+raytidy$study_condition <- raytidy$study_condition %>% as.factor()
+raywide <- pivot_wider(raytidy, names_from = gene, values_from = value)
+ray7only <- raywide[raywide$days_from_first_collection==7,] # 7 days from collection only
+```
+
+
+# Try it with just a plain regression
+```{r}
+rayglm <- glm(study_condition ~ `class:Bacteroidia`, data = rayclasswide,
+              family=binomial(link="logit"))
+tidy(rayglm)
+```
+
+# Compare to tidymodels regression results, results should be identical
+
+```{r}
+
+lm_mod <- logistic_reg() %>% set_engine("glm")
+lm_fit <- lm_mod %>% fit(study_condition ~ `class:Bacteroidia`, data=rayclasswide)
+tidy(lm_fit)
+```
+
+# Try an RF of 7 days post data collection observations only
+It's really bad. Probably need to do some resampling and maybe not agglomerate to class
+```{r}
+# Select only the microbiome vars
+ray7sub <- ray7only %>% select(c("study_condition", starts_with("k__")))
+set.seed(732981)
+ray7split <- initial_split(ray7sub, strata = study_condition)
+ray7train <- training(ray7split)
+ray7test <- testing(ray7split)
+
+rf_mod <- 
+  rand_forest(trees = 1000) %>% 
+  set_engine("ranger") %>% 
+  set_mode("classification")
+
+rf_fit <- rf_mod %>% 
+  fit(study_condition ~ ., data=ray7train)
+
+rf_testing_pred <- 
+  predict(rf_fit, ray7test) %>% 
+  bind_cols(predict(rf_fit, ray7test, type = "prob")) %>% 
+  bind_cols(ray7test %>% select(study_condition))
+rf_testing_pred %>%                   # test set predictions
+    roc_auc(truth = study_condition, estimate=.pred_cephalosporins)
+rf_testing_pred %>%                   # test set predictions
+  accuracy(truth = study_condition, .pred_class)
 ```
 
 ```{r}
-rayotut <- otu_table(phylorayclass) %>% t() %>%  data.frame() %>% rownames_to_column()
-raysam <- sample_data(phylorayclass) %>% data.frame() %>% rownames_to_column()
-raycombo <- inner_join(raysam, rayotut)
-raycombo$study_condition <- as.factor(raycombo$study_condition)
-lm_mod <- logistic_reg() %>% set_engine("glm")
-lm_fit <- lm_mod %>% fit(study_condition ~ phylum.Proteobacteria + class.Bacteroidia + class.Coriobacteriia, data=raycombo)
-tidy(lm_fit) %>% 
-  dwplot(dot_args = list(size = 2, color = "black"),
-         whisker_args = list(color = "black"),
-         vline = geom_vline(xintercept = 0, colour = "grey50", linetype = 2))
+folds <- vfold_cv(ray7train, v= 4, strata = study_condition)
+rf_wf <- 
+  workflow() %>%
+  add_model(rf_mod) %>%
+  add_formula(study_condition ~ .)
+rf_fit_rs <- 
+  rf_wf %>% 
+  fit_resamples(folds)
+collect_metrics(rf_fit_rs)
 ```
+
+
+
 ```{r}
 new <- expand.grid(phylum.Proteobacteria = c(0,0.25,0.50,0.75),
                    class.Bacteroidia = c(0,0.25,0.50,0.75),
                    class.Coriobacteriia = c(0,0.25,0.50,0.75)
                    )
-predict(lm_fit, new_data = new, type="conf_int")
+predict(lm_fit, new_data = new, type="prob")
 ```
 
