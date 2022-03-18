@@ -73,15 +73,16 @@ lm_fit <- lm_mod %>% fit(study_condition ~ `class:Bacteroidia`, data=rayclasswid
 tidy(lm_fit)
 ```
 
-# Try an RF of 7 days post data collection observations only
 It's really bad. Probably need to do some resampling and maybe not agglomerate to class
 ```{r}
 # Select only the microbiome vars
-ray7sub <- ray7only %>% select(c("study_condition", starts_with("k__")))
+raysub<- raywide %>% select(c("study_condition", "subject_id", "age", "gender",
+                              "BMI", "days_from_first_collection",
+                              starts_with("k__")))
 set.seed(732981)
-ray7split <- initial_split(ray7sub, strata = study_condition)
-ray7train <- training(ray7split)
-ray7test <- testing(ray7split)
+raysplit <- initial_split(raysub)
+raytrain <- training(raysplit)
+raytest <- testing(raysplit)
 
 rf_mod <- 
   rand_forest(trees = 1000) %>% 
@@ -89,12 +90,12 @@ rf_mod <-
   set_mode("classification")
 
 rf_fit <- rf_mod %>% 
-  fit(study_condition ~ ., data=ray7train)
+  fit(study_condition ~ ., data=raytrain)
 
 rf_testing_pred <- 
-  predict(rf_fit, ray7test) %>% 
-  bind_cols(predict(rf_fit, ray7test, type = "prob")) %>% 
-  bind_cols(ray7test %>% select(study_condition))
+  predict(rf_fit, raytest) %>% 
+  bind_cols(predict(rf_fit, raytest, type = "prob")) %>% 
+  bind_cols(raytest %>% select(study_condition))
 rf_testing_pred %>%                   # test set predictions
     roc_auc(truth = study_condition, estimate=.pred_cephalosporins)
 rf_testing_pred %>%                   # test set predictions
@@ -102,7 +103,7 @@ rf_testing_pred %>%                   # test set predictions
 ```
 
 ```{r}
-folds <- vfold_cv(ray7train, v= 4, strata = study_condition)
+folds <- group_vfold_cv(raytrain, v= 6, group="subject_id")
 rf_wf <- 
   workflow() %>%
   add_model(rf_mod) %>%
@@ -111,15 +112,5 @@ rf_fit_rs <-
   rf_wf %>% 
   fit_resamples(folds)
 collect_metrics(rf_fit_rs)
-```
-
-
-
-```{r}
-new <- expand.grid(phylum.Proteobacteria = c(0,0.25,0.50,0.75),
-                   class.Bacteroidia = c(0,0.25,0.50,0.75),
-                   class.Coriobacteriia = c(0,0.25,0.50,0.75)
-                   )
-predict(lm_fit, new_data = new, type="prob")
 ```
 
