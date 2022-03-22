@@ -15,5 +15,5 @@ readbioms <- function(x){
 samples <- c("3810", "3811", "3812", "3813", "3814")
 lps <- lapply(samples, readbioms)
 
-merged <- merge_phyloseq(lps[[1]], lps[[2]], lps[[3]], lps[[4]], lps[[5]])
-sample_data(merged)
+bokulich <- merge_phyloseq(lps[[1]], lps[[2]], lps[[3]], lps[[4]], lps[[5]])
+sample_data(bokulich)
