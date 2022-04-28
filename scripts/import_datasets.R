@@ -64,7 +64,8 @@ metaYass <- metaYass[!is.na(metaYassour$SampleID)]
 metaYass <- sample_data(metaYass)
 sample_names(metaYass) <- metaYass$SampleID
 sample_data(phyloYassour) <- metaYass
-Yassour <- phyloYassour
+yassour <- phyloYassour
 
 # Zaura
-Zaura <- import_biom("Zaura/taxa.biom")
+zaura <- import_biom("Zaura/taxa.biom")
+sample_data(zaura)

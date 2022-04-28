@@ -1,0 +1,107 @@
+---
+title: "Korry Tidy Models"
+output: html_notebook
+---
+
+# Load required packages
+
+SIAMCAT is used for analysis
+
+```{r}
+library(curatedMetagenomicData)
+library(dplyr)
+library(mia)
+library(tidymodels)
+library(stringr)
+library(ggplot2)
+library(dotwhisker)
+library(biobroom)
+library(phyloseq)
+```
+
+```{r}
+
+otuKorry <- read.csv("../data/korry/metaphlan/merged/metaphlan_taxonomic_profiles.tsv", sep="\t", strip.white = T, stringsAsFactors = F, row.names = 1)
+colnames(otuKorry) <- substr(colnames(otuKorry),1,10)
+metaKorry <- read.csv("../data/korry/KorryB_2020_metadata.csv")
+samKorry <- sample_data(metaKorry)
+sample_names(samKorry) <- samKorry$NCBI_accession
+
+korry <- phyloseq(samKorry, otu_table(otuKorry, taxa_are_rows=TRUE)) #Mismatch due to sample names being SRS while OTU names are SRRs
+
+```
+
+
+# Proportions in raw korry dataset are presented as percentages. Need to be decimals. Divide by 100.
+```{r}
+otu_table(korry) <- otu_table(korry)/100
+```
+
+
+```{r}
+korrytse <- makeTreeSummarizedExperimentFromPhyloseq(korry)
+korrytidy <- tidy(korrytse, addPheno = TRUE)
+korrytidy$study_condition <- korrytidy$study_condition %>% as.factor()
+korrywide <- pivot_wider(korrytidy, names_from = gene, values_from = value)
+```
+
+
+# Try it with just a plain regression
+```{r}
+korryglm <- glm(study_condition ~ `k__Bacteria|p__Firmicutes`, data = korrywide,
+              family=binomial(link="logit"))
+tidy(korryglm)
+```
+
+# Compare to tidymodels regression results, results should be identical
+
+```{r}
+
+lm_mod <- logistic_reg() %>% set_engine("glm")
+lm_fit <- lm_mod %>% fit(study_condition ~  `k__Bacteria|p__Firmicutes`, data=korrywide)
+tidy(lm_fit)
+```
+
+It's really bad. Probably need to do some resampling and maybe not agglomerate to class
+```{r}
+# Select only the microbiome vars
+korrysub<- korrywide %>% select(c("study_condition", 
+                               starts_with("k__")))
+set.seed(732981)
+korrysplit <- initial_split(korrysub)
+korrytrain <- training(korrysplit)
+korrytest <- testing(korrysplit)
+
+rf_mod <- 
+  rand_forest(trees = 1000) %>% 
+  set_engine("ranger") %>% 
+  set_mode("classification")
+
+rf_fit <- rf_mod %>% 
+  fit(study_condition ~ ., data=korrytrain)
+
+rf_testing_pred <- 
+  predict(rf_fit, korrytest) %>% 
+  bind_cols(predict(rf_fit, korrytest, type = "prob")) %>% 
+  bind_cols(korrytest %>% select(study_condition))
+#rf_testing_pred %>%                   # test set predictions
+#    roc_auc(truth = study_condition, estimate=.pred_amoxicillin)
+rf_testing_pred %>%                   # test set predictions
+  accuracy(truth = study_condition, .pred_class)
+```
+
+```{r}
+folds <- vfold_cv(korrytrain, v= 4, strata=study_condition, repeats=3)
+rf_wf <- 
+  workflow() %>%
+  add_model(rf_mod) %>%
+  add_formula(study_condition ~ .)
+rf_fit_rs <- 
+  rf_wf %>% 
+  fit_resamples(folds)
+collect_metrics(rf_fit_rs)
+```
+```{r}
+precision(rf_testing_pred)
+```
+
