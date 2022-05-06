@@ -1,0 +1,99 @@
+---
+title: "bokulich Tidy Models"
+output: html_notebook
+---
+
+# Load required packages
+
+SIAMCAT is used for analysis
+
+```{r}
+library(curatedMetagenomicData)
+library(dplyr)
+library(mia)
+library(tidymodels)
+library(stringr)
+library(ggplot2)
+library(dotwhisker)
+library(biobroom)
+library(phyloseq)
+```
+
+```{r}
+
+bokulich <- import_biom("../data/boku_neph/taxa.biom")
+bokulich
+```
+
+
+# Proportions in raw bokulich dataset are presented as percentages. Need to be decimals. Divide by 100.
+```{r}
+otu_table(bokulich) <- otu_table(bokulich)/100
+```
+
+
+```{r}
+bokulichtse <- makeTreeSummarizedExperimentFromPhyloseq(bokulich)
+bokulichtidy <- tidy(bokulichtse, addPheno = TRUE)
+bokulichtidy$study_condition <- bokulichtidy$TreatmentGroup %>% as.factor()
+bokulichwide <- pivot_wider(bokulichtidy, names_from = gene, values_from = value)
+```
+
+
+# Try it with just a plain regression
+```{r}
+bokulichglm <- glm(study_condition ~ `seq118`, data = bokulichwide,
+              family=binomial(link="logit"))
+tidy(bokulichglm)
+```
+
+# Compare to tidymodels regression results, results should be identical
+
+```{r}
+
+lm_mod <- logistic_reg() %>% set_engine("glm")
+lm_fit <- lm_mod %>% fit(study_condition ~  `seq118`, data=bokulichwide)
+tidy(lm_fit)
+```
+
+
+```{r}
+# Select only the microbiome vars
+bokulichsub<- bokulichwide %>% select(c("study_condition", 
+                               starts_with("seq")))
+set.seed(732981)
+bokulichsplit <- initial_split(bokulichsub)
+bokulichtrain <- training(bokulichsplit)
+bokulichtest <- testing(bokulichsplit)
+
+rf_mod <- 
+  rand_forest(trees = 1000) %>% 
+  set_engine("ranger") %>% 
+  set_mode("classification")
+
+rf_fit <- rf_mod %>% 
+  fit(study_condition ~ ., data=bokulichtrain)
+
+rf_testing_pred <- 
+  predict(rf_fit, bokulichtest) %>% 
+  bind_cols(predict(rf_fit, bokulichtest, type = "prob")) %>% 
+  bind_cols(bokulichtest %>% select(study_condition))
+#rf_testing_pred %>%                   # test set predictions
+#    roc_auc(truth = study_condition, estimate=.pred_amoxicillin)
+rf_testing_pred %>%                   # test set predictions
+  accuracy(truth = study_condition, .pred_class)
+```
+
+```{r}
+folds <- vfold_cv(bokulichtrain, v= 6, strata=study_condition, repeats=3)
+rf_wf <- 
+  workflow() %>%
+  add_model(rf_mod) %>%
+  add_formula(study_condition ~ .)
+rf_fit_rs <- 
+  rf_wf %>% 
+  fit_resamples(folds)
+collect_metrics(rf_fit_rs)
+```
+
+

@@ -62,7 +62,7 @@ lm_fit <- lm_mod %>% fit(study_condition ~  `k__Bacteria|p__Firmicutes`, data=ko
 tidy(lm_fit)
 ```
 
-It's really bad. Probably need to do some resampling and maybe not agglomerate to class
+
 ```{r}
 # Select only the microbiome vars
 korrysub<- korrywide %>% select(c("study_condition", 
@@ -101,7 +101,5 @@ rf_fit_rs <-
   fit_resamples(folds)
 collect_metrics(rf_fit_rs)
 ```
-```{r}
-precision(rf_testing_pred)
-```
+
 
