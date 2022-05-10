@@ -1,0 +1,153 @@
+---
+title: "Yassour Tidy Models"
+output: html_notebook
+---
+
+# Load required packages
+
+SIAMCAT is used for analysis
+
+```{r}
+library(curatedMetagenomicData)
+library(dplyr)
+library(mia)
+library(tidymodels)
+library(stringr)
+library(ggplot2)
+library(dotwhisker)
+library(biobroom)
+library(phyloseq)
+```
+
+```{r}
+phyloYassour <- import_biom("../data/Yassour/taxa.biom")
+metaYassour <- read.csv("../data/Yassour/YassourM_2016_metadata.csv")
+# One of the metadata rows is missing and should be removed
+metaYassour$SampleID <- metaYassour$X.SampleID
+metaYass <- metaYass[!is.na(metaYassour$SampleID)]
+metaYass <- sample_data(metaYass)
+sample_names(metaYass) <- metaYass$SampleID
+sample_data(phyloYassour) <- metaYass
+yassour <- phyloYassour
+```
+
+# We need to recode the antibiotics into classes of antibiotics
+```{r}
+sample_data(yassour)$abx <- "none"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Amoxicillin"] <- "penicillins"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Cefalexin"] <- "cephalosporins"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Amoxicillin and clavulanic acid"] <- "penicillins"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Azithromycin"] <- "macrolides"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Amoxicillin, Amoxicillin and clavulanic acid"] <- "penicillins"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Amoxicillin and clavulanic acid, Amoxicillin and clavulanic acid"] <- "penicillins"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Trimetoprime and sulfadiazine, Amoxicillin"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Trimetoprime and sulfadiazine"] <- "sulfonamides"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Amoxicillin, Cefaclor, Azithromycin"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Azithromycin, Cefalexin, Trimetoprime and sulfadiazine"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Azithromycin, Trimetoprime and sulfadiazine"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Amoxicillin, Cefalexin, Trimetoprime and sulfadiazine"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Cefaclor"] <- "cephalosporins"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Amoxicillin and clavulanic acid, Trimetoprime and sulfadiazine"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Phenoxymethylpenicillin"] <- "penicillins"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Clarithromycin"] <- "macrolides"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Trimetoprime and sulfadiazine, Trimetoprime and sulfadiazine"] <- "sulfonamides"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Trimetoprime and sulfadiazine, Amoxicillin and clavulanic acid"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Amoxicillin and clavulanic acid, Azithromycin, Amoxicillin and clavulanic acid"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Clarithromycin, Cefalexin"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Cefalexin, Amoxicillin"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Ceftriaxone, Ceftriaxone"] <- "cephalosporins"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Amoxicillin, Trimetoprime and sulfadiazine"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Azithromycin, Amoxicillin and clavulanic acid" ] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Penicillin G, Netilmicin"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Clarithromycin, Trimetoprime and sulfadiazine"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Ceftriaxone"] <- "cephalosporins"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Amoxicillin and clavulanic acid, Trimetoprime and sulfadiazine, Cefalexin, Amoxicillin and clavulanic acid"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Amoxicillin, Amoxicillin and clavulanic acid, Amoxicillin, Amoxicillin and clavulanic acid, Trimetoprime and sulfadiazine, Azithromycin"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Azithromycin, Azithromycin"] <- "macrolides"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Amoxicillin, Amoxicillin"] <- "penicillins"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Cefalexin, Amoxicillin and clavulanic acid"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Cefalexin, Cefalexin, Azithromycin, Amoxicillin"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Trimetoprime and sulfadiazine, Azithromycin, Cefaclor"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Systemic antibiotic NAS"] <- "other"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Amoxicillin and clavulanic acid, Azithromycin"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Cefalexin, Cefalexin, Trimetoprime and sulfadiazine"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Amoxicillin, Systemic antibiotic NAS" ] <- "other"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Trimetoprime and sulfadiazine, Trimetoprime and sulfadiazine, Amoxicillin, Amoxicillin"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Amoxicillin, Trimetoprime and sulfadiazine, Amoxicillin"] <- "multi"
+sample_data(yassour)$abx[sample_data(yassour)$study_condition=="Cefaclor, Cefalexin"] <- "other"
+sample_data(yassour)$abx %>% table()
+
+
+```
+
+
+# Right now the otu_table is counts we need to convert it to proportions
+```{r}
+
+```
+
+
+```{r}
+yassourtse <- makeTreeSummarizedExperimentFromPhyloseq(yassour)
+yassourtidy <- tidy(yassourtse, addPheno = TRUE)
+yassourwide <- pivot_wider(yassourtidy, names_from = gene, values_from = value)
+```
+
+
+# Try it with just a plain regression
+```{r}
+yassourglm <- glm(study_condition ~ `seq118`, data = yassourwide,
+              family=binomial(link="logit"))
+tidy(yassourglm)
+```
+
+# Compare to tidymodels regression results, results should be identical
+
+```{r}
+
+lm_mod <- logistic_reg() %>% set_engine("glm")
+lm_fit <- lm_mod %>% fit(study_condition ~  `seq118`, data=yassourwide)
+tidy(lm_fit)
+```
+
+
+```{r}
+# Select only the microbiome vars
+yassoursub<- yassourwide %>% select(c("abx", starts_with("seq")))
+yassoursub$abx <- factor(yassoursub$abx)
+set.seed(732981)
+yassoursplit <- initial_split(yassoursub)
+yassourtrain <- training(yassoursplit)
+yassourtest <- testing(yassoursplit)
+
+rf_mod <- 
+  rand_forest(trees = 1000) %>% 
+  set_engine("ranger") %>% 
+  set_mode("classification")
+
+rf_fit <- rf_mod %>% 
+  fit(abx ~ ., data=yassourtrain)
+
+rf_testing_pred <- 
+  predict(rf_fit, yassourtest) %>% 
+  bind_cols(predict(rf_fit, yassourtest, type = "prob")) %>% 
+  bind_cols(yassourtest %>% select(abx))
+#rf_testing_pred %>%                   # test set predictions
+#    roc_auc(truth = study_condition, estimate=.pred_amoxicillin)
+rf_testing_pred %>%                   # test set predictions
+  accuracy(truth = abx, .pred_class)
+```
+
+```{r}
+folds <- vfold_cv(yassourtrain, v= 6, strata=abx, repeats=3)
+rf_wf <- 
+  workflow() %>%
+  add_model(rf_mod) %>%
+  add_formula(abx ~ .)
+rf_fit_rs <- 
+  rf_wf %>% 
+  fit_resamples(folds)
+collect_metrics(rf_fit_rs)
+```
+
+
