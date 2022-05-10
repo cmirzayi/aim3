@@ -1,0 +1,108 @@
+---
+title: "Zaura Tidy Models"
+output: html_notebook
+---
+
+# Load required packages
+
+SIAMCAT is used for analysis
+
+```{r}
+library(curatedMetagenomicData)
+library(dplyr)
+library(mia)
+library(tidymodels)
+library(stringr)
+library(ggplot2)
+library(dotwhisker)
+library(biobroom)
+library(phyloseq)
+```
+
+```{r}
+phyloZaura <- import_biom("../data/Zaura/taxa.biom")
+zaura <- phyloZaura
+
+```
+
+
+
+
+# Right now the otu_table is hard to understand
+```{r}
+zauracount <- transform_sample_counts(zaura, function(x) x / sum(x))
+zauraFilt= filter_taxa(zauracount, function(x) mean(x) < .0001,TRUE)
+rmtaxa = taxa_names(zauraFilt)
+alltaxa = taxa_names(zaura)
+
+myTaxa = alltaxa[!alltaxa %in% rmtaxa]
+
+zauraPruned <- prune_taxa(myTaxa,zauracount)
+
+```
+
+
+```{r}
+Zauratse <- makeTreeSummarizedExperimentFromPhyloseq(zauraPruned)
+Zauratidy <- tidy(Zauratse, addPheno = TRUE)
+Zaurawide <- pivot_wider(Zauratidy, names_from = gene, values_from = value)
+```
+
+
+# Try it with just a plain regression
+```{r}
+Zauraglm <- glm(study_condition ~ `seq118`, data = Zaurawide,
+              family=binomial(link="logit"))
+tidy(Zauraglm)
+```
+
+# Compare to tidymodels regression results, results should be identical
+
+```{r}
+
+lm_mod <- logistic_reg() %>% set_engine("glm")
+lm_fit <- lm_mod %>% fit(study_condition ~  `seq118`, data=Zaurawide)
+tidy(lm_fit)
+```
+
+
+```{r}
+# Select only the microbiome vars
+Zaurasub<- Zaurawide %>% select(c("TreatmentGroup", starts_with("seq")))
+Zaurasub$TreatmentGroup <- factor(Zaurasub$TreatmentGroup)
+set.seed(732981)
+Zaurasplit <- initial_split(Zaurasub)
+Zauratrain <- training(Zaurasplit)
+Zauratest <- testing(Zaurasplit)
+
+rf_mod <- 
+  rand_forest(trees = 500) %>% 
+  set_engine("ranger") %>% 
+  set_mode("classification")
+
+rf_fit <- rf_mod %>% 
+  fit(TreatmentGroup ~ ., data=Zauratrain)
+
+rf_testing_pred <- 
+  predict(rf_fit, Zauratest) %>% 
+  bind_cols(predict(rf_fit, Zauratest, type = "prob")) %>% 
+  bind_cols(Zauratest %>% select(TreatmentGroup))
+#rf_testing_pred %>%                   # test set predictions
+#    roc_auc(truth = study_condition, estimate=.pred_amoxicillin)
+rf_testing_pred %>%                   # test set predictions
+  accuracy(truth = TreatmentGroup, .pred_class)
+```
+
+```{r}
+folds <- vfold_cv(Zauratrain, v= 6, strata=TreatmentGroup, repeats=2)
+rf_wf <- 
+  workflow() %>%
+  add_model(rf_mod) %>%
+  add_formula(TreatmentGroup ~ .)
+rf_fit_rs <- 
+  rf_wf %>% 
+  fit_resamples(folds)
+collect_metrics(rf_fit_rs)
+```
+
+
