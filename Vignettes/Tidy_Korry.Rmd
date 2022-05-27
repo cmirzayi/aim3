@@ -32,10 +32,6 @@ korry <- phyloseq(samKorry, otu_table(otuKorry, taxa_are_rows=TRUE)) #Mismatch d
 ```
 
 
-# Proportions in raw korry dataset are presented as percentages. Need to be decimals. Divide by 100.
-```{r}
-otu_table(korry) <- otu_table(korry)/100
-```
 
 
 ```{r}

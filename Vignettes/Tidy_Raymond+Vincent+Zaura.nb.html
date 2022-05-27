@@ -11,7 +11,7 @@
 
 
 
-<title>Zaura Tidy Models</title>
+<title>Raymond + Vincent + Zaura</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1762,7 +1762,7 @@ pre code {
 
 
 
-<h1 class="title toc-ignore">Zaura Tidy Models</h1>
+<h1 class="title toc-ignore">Raymond + Vincent + Zaura</h1>
 
 </div>
 
@@ -1773,50 +1773,538 @@ pre code {
 <p>SIAMCAT is used for analysis</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShjdXJhdGVkTWV0YWdlbm9taWNEYXRhKVxubGlicmFyeShkcGx5cilcbmxpYnJhcnkobWlhKVxubGlicmFyeSh0aWR5bW9kZWxzKVxubGlicmFyeShzdHJpbmdyKVxubGlicmFyeShnZ3Bsb3QyKVxubGlicmFyeShkb3R3aGlza2VyKVxubGlicmFyeShiaW9icm9vbSlcbmxpYnJhcnkocGh5bG9zZXEpXG5gYGAifQ== -->
-<pre class="r"><code>library(curatedMetagenomicData)
-library(dplyr)
-library(mia)
-library(tidymodels)
-library(stringr)
-library(ggplot2)
-library(dotwhisker)
-library(biobroom)
-library(phyloseq)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShjdXJhdGVkTWV0YWdlbm9taWNEYXRhKVxuYGBgIn0= -->
+<pre class="r"><code>library(curatedMetagenomicData)</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiUmVnaXN0ZXJlZCBTMyBtZXRob2RzIG92ZXJ3cml0dGVuIGJ5ICdodG1sdG9vbHMnOlxuICBtZXRob2QgICAgICAgICAgICAgICBmcm9tICAgICAgICAgXG4gIHByaW50Lmh0bWwgICAgICAgICAgIHRvb2xzOnJzdHVkaW9cbiAgcHJpbnQuc2hpbnkudGFnICAgICAgdG9vbHM6cnN0dWRpb1xuICBwcmludC5zaGlueS50YWcubGlzdCB0b29sczpyc3R1ZGlvXG5XYXJuaW5nIG1lc3NhZ2VzOlxuMTogSW4gY2FsbGJhY2soKSA6XG4gIFBhY2thZ2VzICdwYXJhZG94JyBhbmQgJ1BhcmFtSGVscGVycycgYXJlIGNvbmZsaWN0aW5nIGFuZCBzaG91bGQgbm90IGJlIGxvYWRlZCBpbiB0aGUgc2FtZSBzZXNzaW9uXG4yOiBJbiBjYWxsYmFjaygpIDpcbiAgUGFja2FnZXMgJ21scjMnIGFuZCAnbWxyJyBhcmUgY29uZmxpY3RpbmcgYW5kIHNob3VsZCBub3QgYmUgbG9hZGVkIGluIHRoZSBzYW1lIHNlc3Npb25cbiJ9 -->
+<pre><code>Registered S3 methods overwritten by &#39;htmltools&#39;:
+  method               from         
+  print.html           tools:rstudio
+  print.shiny.tag      tools:rstudio
+  print.shiny.tag.list tools:rstudio
+Warning messages:
+1: In callback() :
+  Packages &#39;paradox&#39; and &#39;ParamHelpers&#39; are conflicting and should not be loaded in the same session
+2: In callback() :
+  Packages &#39;mlr3&#39; and &#39;mlr&#39; are conflicting and should not be loaded in the same session</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShkcGx5cilcbmBgYCJ9 -->
+<pre class="r"><code>library(dplyr)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTog4oCYZHBseXLigJlcblxuVGhlIGZvbGxvd2luZyBvYmplY3RzIGFyZSBtYXNrZWQgZnJvbSDigJhwYWNrYWdlOkJpb3N0cmluZ3PigJk6XG5cbiAgICBjb2xsYXBzZSwgaW50ZXJzZWN0LCBzZXRkaWZmLCBzZXRlcXVhbCwgdW5pb25cblxuVGhlIGZvbGxvd2luZyBvYmplY3QgaXMgbWFza2VkIGZyb20g4oCYcGFja2FnZTpYVmVjdG9y4oCZOlxuXG4gICAgc2xpY2VcblxuVGhlIGZvbGxvd2luZyBvYmplY3QgaXMgbWFza2VkIGZyb20g4oCYcGFja2FnZTpCaW9iYXNl4oCZOlxuXG4gICAgY29tYmluZVxuXG5UaGUgZm9sbG93aW5nIG9iamVjdHMgYXJlIG1hc2tlZCBmcm9tIOKAmHBhY2thZ2U6R2Vub21pY1Jhbmdlc+KAmTpcblxuICAgIGludGVyc2VjdCwgc2V0ZGlmZiwgdW5pb25cblxuVGhlIGZvbGxvd2luZyBvYmplY3QgaXMgbWFza2VkIGZyb20g4oCYcGFja2FnZTpHZW5vbWVJbmZvRGLigJk6XG5cbiAgICBpbnRlcnNlY3RcblxuVGhlIGZvbGxvd2luZyBvYmplY3RzIGFyZSBtYXNrZWQgZnJvbSDigJhwYWNrYWdlOklSYW5nZXPigJk6XG5cbiAgICBjb2xsYXBzZSwgZGVzYywgaW50ZXJzZWN0LCBzZXRkaWZmLCBzbGljZSwgdW5pb25cblxuVGhlIGZvbGxvd2luZyBvYmplY3RzIGFyZSBtYXNrZWQgZnJvbSDigJhwYWNrYWdlOlM0VmVjdG9yc+KAmTpcblxuICAgIGZpcnN0LCBpbnRlcnNlY3QsIHJlbmFtZSwgc2V0ZGlmZiwgc2V0ZXF1YWwsIHVuaW9uXG5cblRoZSBmb2xsb3dpbmcgb2JqZWN0cyBhcmUgbWFza2VkIGZyb20g4oCYcGFja2FnZTpCaW9jR2VuZXJpY3PigJk6XG5cbiAgICBjb21iaW5lLCBpbnRlcnNlY3QsIHNldGRpZmYsIHVuaW9uXG5cblRoZSBmb2xsb3dpbmcgb2JqZWN0IGlzIG1hc2tlZCBmcm9tIOKAmHBhY2thZ2U6bWF0cml4U3RhdHPigJk6XG5cbiAgICBjb3VudFxuXG5UaGUgZm9sbG93aW5nIG9iamVjdHMgYXJlIG1hc2tlZCBmcm9tIOKAmHBhY2thZ2U6c3RhdHPigJk6XG5cbiAgICBmaWx0ZXIsIGxhZ1xuXG5UaGUgZm9sbG93aW5nIG9iamVjdHMgYXJlIG1hc2tlZCBmcm9tIOKAmHBhY2thZ2U6YmFzZeKAmTpcblxuICAgIGludGVyc2VjdCwgc2V0ZGlmZiwgc2V0ZXF1YWwsIHVuaW9uXG4ifQ== -->
+<pre><code>
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:Biostrings’:
+
+    collapse, intersect, setdiff, setequal, union
+
+The following object is masked from ‘package:XVector’:
+
+    slice
+
+The following object is masked from ‘package:Biobase’:
+
+    combine
+
+The following objects are masked from ‘package:GenomicRanges’:
+
+    intersect, setdiff, union
+
+The following object is masked from ‘package:GenomeInfoDb’:
+
+    intersect
+
+The following objects are masked from ‘package:IRanges’:
+
+    collapse, desc, intersect, setdiff, slice, union
+
+The following objects are masked from ‘package:S4Vectors’:
+
+    first, intersect, rename, setdiff, setequal, union
+
+The following objects are masked from ‘package:BiocGenerics’:
+
+    combine, intersect, setdiff, union
+
+The following object is masked from ‘package:matrixStats’:
+
+    count
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShtaWEpXG5gYGAifQ== -->
+<pre class="r"><code>library(mia)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiBNdWx0aUFzc2F5RXhwZXJpbWVudFxuIn0= -->
+<pre><code>Loading required package: MultiAssayExperiment</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0aWR5bW9kZWxzKVxuYGBgIn0= -->
+<pre class="r"><code>library(tidymodels)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoi4pSA4pSAIEF0dGFjaGluZyBwYWNrYWdlcyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgdGlkeW1vZGVscyAwLjIuMCDilIDilIBcbuKclCBicm9vbSAgICAgICAgMC44LjAgICAgIOKclCByc2FtcGxlICAgICAgMC4xLjFcbuKclCBkaWFscyAgICAgICAgMC4xLjEgICAgIOKclCB0aWJibGUgICAgICAgMy4xLjdcbuKclCBnZ3Bsb3QyICAgICAgMy4zLjYgICAgIOKclCB0aWR5ciAgICAgICAgMS4yLjBcbuKclCBpbmZlciAgICAgICAgMS4wLjAgICAgIOKclCB0dW5lICAgICAgICAgMC4yLjBcbuKclCBtb2RlbGRhdGEgICAgMC4xLjEgICAgIOKclCB3b3JrZmxvd3MgICAgMC4yLjZcbuKclCBwYXJzbmlwICAgICAgMC4yLjEgICAgIOKclCB3b3JrZmxvd3NldHMgMC4yLjFcbuKclCBwdXJyciAgICAgICAgMC4zLjQgICAgIOKclCB5YXJkc3RpY2sgICAgMC4wLjlcbuKclCByZWNpcGVzICAgICAgMC4yLjAgICAgIFxu4pSA4pSAIENvbmZsaWN0cyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgdGlkeW1vZGVsc19jb25mbGljdHMoKSDilIDilIBcbuKcliBkcGx5cjo6Y29sbGFwc2UoKSAgICAgbWFza3MgQmlvc3RyaW5nczo6Y29sbGFwc2UoKSwgSVJhbmdlczo6Y29sbGFwc2UoKVxu4pyWIGRwbHlyOjpjb21iaW5lKCkgICAgICBtYXNrcyBCaW9iYXNlOjpjb21iaW5lKCksIEJpb2NHZW5lcmljczo6Y29tYmluZSgpXG7inJYgcHVycnI6OmNvbXBhY3QoKSAgICAgIG1hc2tzIFhWZWN0b3I6OmNvbXBhY3QoKVxu4pyWIHJzYW1wbGU6OmNvbXBsZW1lbnQoKSBtYXNrcyBCaW9zdHJpbmdzOjpjb21wbGVtZW50KClcbuKcliBkcGx5cjo6Y291bnQoKSAgICAgICAgbWFza3MgbWF0cml4U3RhdHM6OmNvdW50KClcbuKcliBkcGx5cjo6ZGVzYygpICAgICAgICAgbWFza3MgSVJhbmdlczo6ZGVzYygpXG7inJYgcHVycnI6OmRpc2NhcmQoKSAgICAgIG1hc2tzIHNjYWxlczo6ZGlzY2FyZCgpXG7inJYgdGlkeXI6OmV4cGFuZCgpICAgICAgIG1hc2tzIFM0VmVjdG9yczo6ZXhwYW5kKClcbuKcliB0aWR5cjo6ZXh0cmFjdCgpICAgICAgbWFza3MgTWljcm9iaW90YVByb2Nlc3M6OmV4dHJhY3QoKVxu4pyWIGRwbHlyOjpmaWx0ZXIoKSAgICAgICBtYXNrcyBNaWNyb2Jpb3RhUHJvY2Vzczo6ZmlsdGVyKCksIHN0YXRzOjpmaWx0ZXIoKVxu4pyWIGRwbHlyOjpmaXJzdCgpICAgICAgICBtYXNrcyBTNFZlY3RvcnM6OmZpcnN0KClcbuKcliBpbmZlcjo6Z2V0X3B2YWx1ZSgpICAgbWFza3MgTWljcm9iaW90YVByb2Nlc3M6OmdldF9wdmFsdWUoKVxu4pyWIGRwbHlyOjpsYWcoKSAgICAgICAgICBtYXNrcyBzdGF0czo6bGFnKClcbuKcliBnZ3Bsb3QyOjpQb3NpdGlvbigpICAgbWFza3MgQmlvY0dlbmVyaWNzOjpQb3NpdGlvbigpLCBiYXNlOjpQb3NpdGlvbigpXG7inJYgcHVycnI6OnJlZHVjZSgpICAgICAgIG1hc2tzIEdlbm9taWNSYW5nZXM6OnJlZHVjZSgpLCBJUmFuZ2VzOjpyZWR1Y2UoKVxu4pyWIGRwbHlyOjpyZW5hbWUoKSAgICAgICBtYXNrcyBNaWNyb2Jpb3RhUHJvY2Vzczo6cmVuYW1lKCksIFM0VmVjdG9yczo6cmVuYW1lKClcbuKcliBkcGx5cjo6c2xpY2UoKSAgICAgICAgbWFza3MgTWljcm9iaW90YVByb2Nlc3M6OnNsaWNlKCksIFhWZWN0b3I6OnNsaWNlKCksIElSYW5nZXM6OnNsaWNlKClcbuKcliByZWNpcGVzOjpzdGVwKCkgICAgICAgbWFza3Mgc3RhdHM6OnN0ZXAoKVxu4pyWIHBhcnNuaXA6OnRyYW5zbGF0ZSgpICBtYXNrcyBCaW9zdHJpbmdzOjp0cmFuc2xhdGUoKVxu4pyWIHJlY2lwZXM6OnVwZGF0ZSgpICAgICBtYXNrcyBHZW5vbWljUmFuZ2VzOjp1cGRhdGUoKSwgc3RhdHM0Ojp1cGRhdGUoKSwgc3RhdHM6OnVwZGF0ZSgpXG7igKIgTGVhcm4gaG93IHRvIGdldCBzdGFydGVkIGF0IGh0dHBzOi8vd3d3LnRpZHltb2RlbHMub3JnL3N0YXJ0L1xuIn0= -->
+<pre><code>── Attaching packages ────────────────────────────────────────────────────────────────── tidymodels 0.2.0 ──
+✔ broom        0.8.0     ✔ rsample      0.1.1
+✔ dials        0.1.1     ✔ tibble       3.1.7
+✔ ggplot2      3.3.6     ✔ tidyr        1.2.0
+✔ infer        1.0.0     ✔ tune         0.2.0
+✔ modeldata    0.1.1     ✔ workflows    0.2.6
+✔ parsnip      0.2.1     ✔ workflowsets 0.2.1
+✔ purrr        0.3.4     ✔ yardstick    0.0.9
+✔ recipes      0.2.0     
+── Conflicts ───────────────────────────────────────────────────────────────────── tidymodels_conflicts() ──
+✖ dplyr::collapse()     masks Biostrings::collapse(), IRanges::collapse()
+✖ dplyr::combine()      masks Biobase::combine(), BiocGenerics::combine()
+✖ purrr::compact()      masks XVector::compact()
+✖ rsample::complement() masks Biostrings::complement()
+✖ dplyr::count()        masks matrixStats::count()
+✖ dplyr::desc()         masks IRanges::desc()
+✖ purrr::discard()      masks scales::discard()
+✖ tidyr::expand()       masks S4Vectors::expand()
+✖ tidyr::extract()      masks MicrobiotaProcess::extract()
+✖ dplyr::filter()       masks MicrobiotaProcess::filter(), stats::filter()
+✖ dplyr::first()        masks S4Vectors::first()
+✖ infer::get_pvalue()   masks MicrobiotaProcess::get_pvalue()
+✖ dplyr::lag()          masks stats::lag()
+✖ ggplot2::Position()   masks BiocGenerics::Position(), base::Position()
+✖ purrr::reduce()       masks GenomicRanges::reduce(), IRanges::reduce()
+✖ dplyr::rename()       masks MicrobiotaProcess::rename(), S4Vectors::rename()
+✖ dplyr::slice()        masks MicrobiotaProcess::slice(), XVector::slice(), IRanges::slice()
+✖ recipes::step()       masks stats::step()
+✖ parsnip::translate()  masks Biostrings::translate()
+✖ recipes::update()     masks GenomicRanges::update(), stats4::update(), stats::update()
+• Learn how to get started at https://www.tidymodels.org/start/</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShzdHJpbmdyKVxuYGBgIn0= -->
+<pre class="r"><code>library(stringr)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTog4oCYc3RyaW5ncuKAmVxuXG5UaGUgZm9sbG93aW5nIG9iamVjdCBpcyBtYXNrZWQgZnJvbSDigJhwYWNrYWdlOnJlY2lwZXPigJk6XG5cbiAgICBmaXhlZFxuIn0= -->
+<pre><code>
+Attaching package: ‘stringr’
+
+The following object is masked from ‘package:recipes’:
+
+    fixed</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShnZ3Bsb3QyKVxubGlicmFyeShkb3R3aGlza2VyKVxuYGBgIn0= -->
+<pre class="r"><code>library(ggplot2)
+library(dotwhisker)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiUmVnaXN0ZXJlZCBTMyBtZXRob2Qgb3ZlcndyaXR0ZW4gYnkgJ3BhcmFtZXRlcnMnOlxuICBtZXRob2QgICAgICAgICAgICAgICAgICAgICAgICAgZnJvbSAgICAgIFxuICBmb3JtYXQucGFyYW1ldGVyc19kaXN0cmlidXRpb24gZGF0YXdpemFyZFxuIn0= -->
+<pre><code>Registered S3 method overwritten by &#39;parameters&#39;:
+  method                         from      
+  format.parameters_distribution datawizard</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShiaW9icm9vbSlcbmBgYCJ9 -->
+<pre class="r"><code>library(biobroom)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiUmVnaXN0ZXJlZCBTMyBtZXRob2RzIG92ZXJ3cml0dGVuIGJ5ICdiaW9icm9vbSc6XG4gIG1ldGhvZCAgICAgIGZyb20gXG4gIGdsYW5jZS5saXN0IGJyb29tXG4gIHRpZHkubGlzdCAgIGJyb29tXG4ifQ== -->
+<pre><code>Registered S3 methods overwritten by &#39;biobroom&#39;:
+  method      from 
+  glance.list broom
+  tidy.list   broom</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
+</div>
+<div id="load-zaura-dataset" class="section level1">
+<h1>Load Zaura dataset</h1>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGh5bG9aYXVyYSA8LSBpbXBvcnRfYmlvbShcIi4uL2RhdGEvWmF1cmEvdGF4YS5iaW9tXCIpXG56YXVyYSA8LSBwaHlsb1phdXJhXG4jdHJlZVphdXJhIDwtIHJlYWRfdHJlZShcIi4uL2RhdGEvWmF1cmEvcGh5bG8vcm9vdGVkX3RyZWUubndrXCIpXG5tZXRhWmF1cmEgPC0gcmVhZC5jc3YoXCIuLi9kYXRhL1phdXJhL3phdXJhIG1ldGFkYXRhLmNzdlwiKVxucm93Lm5hbWVzKG1ldGFaYXVyYSkgPC0gbWV0YVphdXJhJE5DQklfYWNjZXNzaW9uXG4jcGh5X3RyZWUoemF1cmEpIDwtIHRyZWVaYXVyYVxuc2FtcGxlX2RhdGEoemF1cmEpIDwtIG1ldGFaYXVyYVxuYGBgIn0= -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGh5bG9aYXVyYSA8LSBpbXBvcnRfYmlvbShcIi4uL2RhdGEvWmF1cmEvdGF4YS5iaW9tXCIpXG56YXVyYSA8LSBwaHlsb1phdXJhXG5cbm1ldGFaYXVyYSA8LSByZWFkLmNzdihcIi4uL2RhdGEvWmF1cmEvemF1cmEgbWV0YWRhdGEuY3N2XCIpXG5yb3cubmFtZXMobWV0YVphdXJhKSA8LSBtZXRhWmF1cmEkTkNCSV9hY2Nlc3Npb25cblxuc2FtcGxlX2RhdGEoemF1cmEpIDwtIG1ldGFaYXVyYVxuYGBgIn0= -->
 <pre class="r"><code>phyloZaura &lt;- import_biom(&quot;../data/Zaura/taxa.biom&quot;)
 zaura &lt;- phyloZaura
-#treeZaura &lt;- read_tree(&quot;../data/Zaura/phylo/rooted_tree.nwk&quot;)
+
 metaZaura &lt;- read.csv(&quot;../data/Zaura/zaura metadata.csv&quot;)
 row.names(metaZaura) &lt;- metaZaura$NCBI_accession
-#phy_tree(zaura) &lt;- treeZaura
+
 sample_data(zaura) &lt;- metaZaura</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-</div>
-<div id="get-ncbi-taxon-ids" class="section level1">
-<h1>Get NCBI taxon ids</h1>
+<div id="get-ncbi-names-to-merge-with-zaura" class="section level2">
+<h2>Get NCBI names to merge with Zaura</h2>
+<div id="get-ncbi-taxon-ids" class="section level3">
+<h3>Get NCBI taxon ids</h3>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubmNiaVxuXG5gYGAifQ== -->
-<pre class="r"><code>ncbi
-</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0YXhpemVkYilcbmBgYCJ9 -->
+<pre class="r"><code>library(taxizedb)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiUmVnaXN0ZXJlZCBTMyBtZXRob2Qgb3ZlcndyaXR0ZW4gYnkgJ2hvYXJkcic6XG4gIG1ldGhvZCAgICAgICAgICAgZnJvbVxuICBwcmludC5jYWNoZV9pbmZvIGh0dHJcbiJ9 -->
+<pre><code>Registered S3 method overwritten by &#39;hoardr&#39;:
+  method           from
+  print.cache_info httr</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGJfZG93bmxvYWRfbmNiaSgpXG5gYGAifQ== -->
+<pre class="r"><code>db_download_ncbi()</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRGF0YWJhc2UgYWxyZWFkeSBleGlzdHMsIHJldHVybmluZyBvbGQgZmlsZVxuIn0= -->
+<pre><code>Database already exists, returning old file</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFwifi8uY2FjaGUvUi90YXhpemVkYi9OQ0JJLnNxbFwiXG4ifQ== -->
+<pre><code>[1] &quot;~/.cache/R/taxizedb/NCBI.sql&quot;</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubmNiaSA8LSBzcmNfbmNiaSgpXG5uY2JpXG5gYGAifQ== -->
+<pre class="r"><code>ncbi &lt;- src_ncbi()
+ncbi</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-begin eyJkYXRhIjoic3JjOiAgc3FsaXRlIDMuMzguNSBbL21udC9TVE9SRTEvYmlnaG9tZS9jbWlyemF5aS8uY2FjaGUvUi90YXhpemVkYi9OQ0JJLnNxbF1cbnRibHM6IGhpZXJhcmNoeSwgbmFtZXMsIG5vZGVzXG4ifQ== -->
 <pre><code>src:  sqlite 3.38.5 [/mnt/STORE1/bighome/cmirzayi/.cache/R/taxizedb/NCBI.sql]
 tbls: hierarchy, names, nodes</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+</div>
+</div>
+<div id="filter-cmd-metadata-table-for-vincent-and-raymond" class="section level1">
+<h1>Filter cMD metadata table for Vincent and Raymond</h1>
+<!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGF4YV9uYW1lcyhwaHlsb3J2KSA8LSBydmdlbmVyYVxuXG5gYGAifQ== -->
-<pre class="r"><code>taxa_names(phylorv) &lt;- rvgenera
-</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWV0YSA8LSBjdXJhdGVkTWV0YWdlbm9taWNEYXRhOjpzYW1wbGVNZXRhZGF0YVxubWV0YSRzdHVkeV9uYW1lICU+JSB0YWJsZSgpXG5gYGAifQ== -->
+<pre class="r"><code>meta &lt;- curatedMetagenomicData::sampleMetadata
+meta$study_name %&gt;% table()</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiLlxuICAgICAgICAgQXNuaWNhckZfMjAxNyAgICAgICAgICBBc25pY2FyRl8yMDIxICAgICAgICAgIEJhY2toZWRGXzIwMTUgIEJlbmd0c3Nvbi1QYWxtZUpfMjAxNSBcbiAgICAgICAgICAgICAgICAgICAgMjQgICAgICAgICAgICAgICAgICAgMTA5OCAgICAgICAgICAgICAgICAgICAgNDAwICAgICAgICAgICAgICAgICAgICAgNzAgXG4gICAgICAgICAgQnJpdG9JTF8yMDE2ICAgICAgICAgICBCcm9va3NCXzIwMTcgICAgQ2FzdHJvLU5hbGxhckVfMjAxNSAgICAgICAgQ2hlbmdwaW5nV18yMDE3IFxuICAgICAgICAgICAgICAgICAgIDMxMiAgICAgICAgICAgICAgICAgICAgNDA4ICAgICAgICAgICAgICAgICAgICAgMzIgICAgICAgICAgICAgICAgICAgICA5NyBcbiAgICAgICAgICAgQ2huZ0tSXzIwMTYgICAgICAgICAgICAgQ2h1RE1fMjAxNyAgICAgICAgICBDb3N0ZWFQSV8yMDE3ICAgICAgICAgICBEYXZpZExBXzIwMTUgXG4gICAgICAgICAgICAgICAgICAgIDc4ICAgICAgICAgICAgICAgICAgICAgODYgICAgICAgICAgICAgICAgICAgIDI3OSAgICAgICAgICAgICAgICAgICAgIDQ3IFxuICAgICAgRGVGaWxpcHBpc0ZfMjAxOSAgICAgICAgICBEaGFrYW5EQl8yMDE5ICAgICAgICAgICAgIEZlbmdRXzIwMTUgICAgICAgICBGZXJyZXR0aVBfMjAxOCBcbiAgICAgICAgICAgICAgICAgICAgOTcgICAgICAgICAgICAgICAgICAgIDExMCAgICAgICAgICAgICAgICAgICAgMTU0ICAgICAgICAgICAgICAgICAgICAyMTQgXG4gICAgICAgIEZyYW5rZWxBRV8yMDE3ICAgICAgICAgICBHaGVuc2lQXzIwMTkgICBHb3BhbGFrcmlzaG5hblZfMjAxOCAgICAgICAgICAgIEd1cHRhQV8yMDE5IFxuICAgICAgICAgICAgICAgICAgICAzOSAgICAgICAgICAgICAgICAgICAgMTEzICAgICAgICAgICAgICAgICAgICAgMjUgICAgICAgICAgICAgICAgICAgICA2MCBcbiAgICAgICAgICAgSGFsbEFCXzIwMTcgICAgICAgIEhhbm5pZ2FuR0RfMjAxNyAgICAgICAgIEhhbnNlbkxCU18yMDE4ICAgSGVpdHotQnVzY2hhcnRBXzIwMTYgXG4gICAgICAgICAgICAgICAgICAgMjU5ICAgICAgICAgICAgICAgICAgICAgODEgICAgICAgICAgICAgICAgICAgIDIwNyAgICAgICAgICAgICAgICAgICAgIDUzIFxuICAgICAgICAgICAgICBITVBfMjAxMiAgICAgICAgSE1QXzIwMTlfaWJkbWRiICAgICAgICAgICBITVBfMjAxOV90MmQgICAgICAgICAgICBJamF6VVpfMjAxNyBcbiAgICAgICAgICAgICAgICAgICA3NDggICAgICAgICAgICAgICAgICAgMTYyNyAgICAgICAgICAgICAgICAgICAgMjk2ICAgICAgICAgICAgICAgICAgICAgOTQgXG4gICAgICAgICAgICAgSmllWl8yMDE3ICAgICAgICBLYXJsc3NvbkZIXzIwMTMgICAgICAgICAgICAgS2F1cktfMjAyMCAgICAgICAgIEtlb2hhbmVETV8yMDIwIFxuICAgICAgICAgICAgICAgICAgIDM4NSAgICAgICAgICAgICAgICAgICAgMTQ1ICAgICAgICAgICAgICAgICAgICAgMzEgICAgICAgICAgICAgICAgICAgIDExNyBcbiAgICAgICAgICBLaWVzZXJTXzIwMTggICAgICAgICAgS29zdGljQURfMjAxNSAgICAgICAgIExhc3NhbGxlRl8yMDE3ICAgICAgTGVDaGF0ZWxpZXJFXzIwMTMgXG4gICAgICAgICAgICAgICAgICAgIDI3ICAgICAgICAgICAgICAgICAgICAxMjAgICAgICAgICAgICAgICAgICAgICAyMyAgICAgICAgICAgICAgICAgICAgMjkyIFxuICAgICAgICAgICAgTGVlS0FfMjAyMiAgICAgTGlmZUxpbmVzRGVlcF8yMDE2ICAgICAgICAgICAgICAgTGlKXzIwMTQgICAgICAgICAgICAgICBMaUpfMjAxNyBcbiAgICAgICAgICAgICAgICAgICAxNjUgICAgICAgICAgICAgICAgICAgMTEzNSAgICAgICAgICAgICAgICAgICAgMjYwICAgICAgICAgICAgICAgICAgICAxOTYgXG4gICAgICAgICAgICAgTGlTU18yMDE2ICAgICAgICAgICAgICBMaXVXXzIwMTYgICAgICAgICAgIExva21lckFfMjAxOSAgICAgICAgICAgTG9tYW5OSl8yMDEzIFxuICAgICAgICAgICAgICAgICAgICA1NSAgICAgICAgICAgICAgICAgICAgMTEwICAgICAgICAgICAgICAgICAgICAgNTcgICAgICAgICAgICAgICAgICAgICA0MiBcbiAgICAgICAgICBMb29tYmFSXzIwMTcgICAgICAgICAgICBMb3Vpc1NfMjAxNiAgICAgICAgICAgTWF0c29uVl8yMDE4ICAgICAgICAgICBNZWh0YVJTXzIwMTggXG4gICAgICAgICAgICAgICAgICAgIDg2ICAgICAgICAgICAgICAgICAgICAgOTIgICAgICAgICAgICAgICAgICAgICAzOSAgICAgICAgICAgICAgICAgICAgOTI4IFxuICAgICAgTmFneVN6YWthbERfMjAxNyAgICAgICAgIE5pZWxzZW5IQl8yMDE0ICAgIE9icmVnb24tVGl0b0FKXzIwMTUgICAgICAgICAgICAgICBPaEpfMjAxNCBcbiAgICAgICAgICAgICAgICAgICAxMDAgICAgICAgICAgICAgICAgICAgIDM5NiAgICAgICAgICAgICAgICAgICAgIDU4ICAgICAgICAgICAgICAgICAgICAyOTEgXG4gICAgICAgICAgICBPbG1NUl8yMDE3ICAgICAgICAgIFBhc29sbGlFXzIwMTkgICAgICAgICBQZWhyc3NvbkVfMjAxNiAgICAgICAgICBQZXRlcnNCQV8yMDE5IFxuICAgICAgICAgICAgICAgICAgICA0NSAgICAgICAgICAgICAgICAgICAgMTEyICAgICAgICAgICAgICAgICAgICAxOTEgICAgICAgICAgICAgICAgICAgICAyNyBcbiAgICAgICAgICAgICBRaW5KXzIwMTIgICAgICAgICAgICAgIFFpbk5fMjAxNCAgICAgICAgIFJhbXBlbGxpU18yMDE1ICAgICAgICAgIFJheW1vbmRGXzIwMTYgXG4gICAgICAgICAgICAgICAgICAgMzYzICAgICAgICAgICAgICAgICAgICAyMzcgICAgICAgICAgICAgICAgICAgICAzOCAgICAgICAgICAgICAgICAgICAgIDcyIFxuICAgICAgICAgICBSb3NhQkFfMjAxOCAgICAgICAgICAgUnViZWxNQV8yMDIwIFNhbmthcmFuYXJheWFuYW5LXzIwMTUgICAgICAgICBTY2hpcm1lck1fMjAxNiBcbiAgICAgICAgICAgICAgICAgICAgMjQgICAgICAgICAgICAgICAgICAgIDE3NSAgICAgICAgICAgICAgICAgICAgIDM3ICAgICAgICAgICAgICAgICAgICA0NzEgXG4gICAgICAgICAgICBTaGFvWV8yMDE5ICAgICAgICAgICAgICBTaGlCXzIwMTUgICAgICAgICAgIFNtaXRzU0FfMjAxNyAgICAgICAgICAgIFRldHRBSl8yMDE2IFxuICAgICAgICAgICAgICAgICAgMTY0NCAgICAgICAgICAgICAgICAgICAgIDQ4ICAgICAgICAgICAgICAgICAgICAgNDAgICAgICAgICAgICAgICAgICAgICA4OSBcbiAgICAgICAgIFRldHRBSl8yMDE5X2EgICAgICAgICAgVGV0dEFKXzIwMTlfYiAgICAgICAgICBUZXR0QUpfMjAxOV9jICAgICAgICAgVGhvbWFzQU1fMjAxOGEgXG4gICAgICAgICAgICAgICAgICAgIDY4ICAgICAgICAgICAgICAgICAgICAgNDQgICAgICAgICAgICAgICAgICAgICA1MCAgICAgICAgICAgICAgICAgICAgIDgwIFxuICAgICAgICBUaG9tYXNBTV8yMDE4YiAgICAgICAgVGhvbWFzQU1fMjAxOV9jICAgICAgICAgIFZhdGFuZW5UXzIwMTYgICAgICAgICAgICBWaWxhQVZfMjAxOCBcbiAgICAgICAgICAgICAgICAgICAgNjAgICAgICAgICAgICAgICAgICAgICA4MCAgICAgICAgICAgICAgICAgICAgNzg1ICAgICAgICAgICAgICAgICAgICAzNTUgXG4gICAgICAgICBWaW5jZW50Q18yMDE2ICAgICAgICAgVm9ndG1hbm5FXzIwMTYgICAgICAgICAgV2FtcGFjaExfMjAxOCAgICAgICAgICAgIFdpbmRUVF8yMDIwIFxuICAgICAgICAgICAgICAgICAgIDIyOSAgICAgICAgICAgICAgICAgICAgMTEwICAgICAgICAgICAgICAgICAgICAgNjMgICAgICAgICAgICAgICAgICAgICAyMCBcbiAgICAgICAgICBXaXJiZWxKXzIwMTggICAgICAgICAgICAgIFhpZUhfMjAxNiAgICAgICAgICBZYWNoaWRhU18yMDE5ICAgICAgICAgIFlhc3NvdXJNXzIwMTYgXG4gICAgICAgICAgICAgICAgICAgMTI1ICAgICAgICAgICAgICAgICAgICAyNTAgICAgICAgICAgICAgICAgICAgIDYxNiAgICAgICAgICAgICAgICAgICAgIDM2IFxuICAgICAgICAgWWFzc291ck1fMjAxOCAgICAgICAgICAgICAgIFllWl8yMDE4ICAgICAgICAgICAgICAgWXVKXzIwMTUgICAgICAgICAgICBaZWV2aURfMjAxNSBcbiAgICAgICAgICAgICAgICAgICAyNzEgICAgICAgICAgICAgICAgICAgICA2NSAgICAgICAgICAgICAgICAgICAgMTI4ICAgICAgICAgICAgICAgICAgICA5MDAgXG4gICAgICAgICAgWmVsbGVyR18yMDE0ICAgICAgICAgICAgICBaaHVGXzIwMjAgXG4gICAgICAgICAgICAgICAgICAgMTU2ICAgICAgICAgICAgICAgICAgICAxNzEgXG4ifQ== -->
+<pre><code>.
+         AsnicarF_2017          AsnicarF_2021          BackhedF_2015  Bengtsson-PalmeJ_2015 
+                    24                   1098                    400                     70 
+          BritoIL_2016           BrooksB_2017    Castro-NallarE_2015        ChengpingW_2017 
+                   312                    408                     32                     97 
+           ChngKR_2016             ChuDM_2017          CosteaPI_2017           DavidLA_2015 
+                    78                     86                    279                     47 
+      DeFilippisF_2019          DhakanDB_2019             FengQ_2015         FerrettiP_2018 
+                    97                    110                    154                    214 
+        FrankelAE_2017           GhensiP_2019   GopalakrishnanV_2018            GuptaA_2019 
+                    39                    113                     25                     60 
+           HallAB_2017        HanniganGD_2017         HansenLBS_2018   Heitz-BuschartA_2016 
+                   259                     81                    207                     53 
+              HMP_2012        HMP_2019_ibdmdb           HMP_2019_t2d            IjazUZ_2017 
+                   748                   1627                    296                     94 
+             JieZ_2017        KarlssonFH_2013             KaurK_2020         KeohaneDM_2020 
+                   385                    145                     31                    117 
+          KieserS_2018          KosticAD_2015         LassalleF_2017      LeChatelierE_2013 
+                    27                    120                     23                    292 
+            LeeKA_2022     LifeLinesDeep_2016               LiJ_2014               LiJ_2017 
+                   165                   1135                    260                    196 
+             LiSS_2016              LiuW_2016           LokmerA_2019           LomanNJ_2013 
+                    55                    110                     57                     42 
+          LoombaR_2017            LouisS_2016           MatsonV_2018           MehtaRS_2018 
+                    86                     92                     39                    928 
+      NagySzakalD_2017         NielsenHB_2014    Obregon-TitoAJ_2015               OhJ_2014 
+                   100                    396                     58                    291 
+            OlmMR_2017          PasolliE_2019         PehrssonE_2016          PetersBA_2019 
+                    45                    112                    191                     27 
+             QinJ_2012              QinN_2014         RampelliS_2015          RaymondF_2016 
+                   363                    237                     38                     72 
+           RosaBA_2018           RubelMA_2020 SankaranarayananK_2015         SchirmerM_2016 
+                    24                    175                     37                    471 
+            ShaoY_2019              ShiB_2015           SmitsSA_2017            TettAJ_2016 
+                  1644                     48                     40                     89 
+         TettAJ_2019_a          TettAJ_2019_b          TettAJ_2019_c         ThomasAM_2018a 
+                    68                     44                     50                     80 
+        ThomasAM_2018b        ThomasAM_2019_c          VatanenT_2016            VilaAV_2018 
+                    60                     80                    785                    355 
+         VincentC_2016         VogtmannE_2016          WampachL_2018            WindTT_2020 
+                   229                    110                     63                     20 
+          WirbelJ_2018              XieH_2016          YachidaS_2019          YassourM_2016 
+                   125                    250                    616                     36 
+         YassourM_2018               YeZ_2018               YuJ_2015            ZeeviD_2015 
+                   271                     65                    128                    900 
+          ZellerG_2014              ZhuF_2020 
+                   156                    171 </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3VibWV0YSA8LSBtZXRhICU+JSBmaWx0ZXIoc3R1ZHlfbmFtZT09XCJWaW5jZW50Q18yMDE2XCIgfCBzdHVkeV9uYW1lPT1cIlJheW1vbmRGXzIwMTZcIilcbnN1Ym1ldGEkc3R1ZHlfbmFtZSAlPiUgdGFibGUoKVxuYGBgIn0= -->
+<pre class="r"><code>submeta &lt;- meta %&gt;% filter(study_name==&quot;VincentC_2016&quot; | study_name==&quot;RaymondF_2016&quot;)
+submeta$study_name %&gt;% table()</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiLlxuUmF5bW9uZEZfMjAxNiBWaW5jZW50Q18yMDE2IFxuICAgICAgICAgICA3MiAgICAgICAgICAgMjI5IFxuIn0= -->
+<pre><code>.
+RaymondF_2016 VincentC_2016 
+           72           229 </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="download-data-from-cmd-for-matching-metadata" class="section level1">
+<h1>Download data from cMD for matching metadata</h1>
+<p>Table should match the metadata table</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmF5dmluY2UgPC0gcmV0dXJuU2FtcGxlcyhzdWJtZXRhLCBcInJlbGF0aXZlX2FidW5kYW5jZVwiLCByb3duYW1lcyA9IFwiTkNCSVwiKVxuYGBgIn0= -->
+<pre class="r"><code>rayvince &lt;- returnSamples(submeta, &quot;relative_abundance&quot;, rownames = &quot;NCBI&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoic25hcHNob3REYXRlKCk6IDIwMjItMDQtMjZcblxuJGAyMDIxLTAzLTMxLlJheW1vbmRGXzIwMTYucmVsYXRpdmVfYWJ1bmRhbmNlYFxuZHJvcHBpbmcgcm93cyB3aXRob3V0IHJvd1RyZWUgbWF0Y2hlczpcbiAga19fQmFjdGVyaWF8cF9fQWN0aW5vYmFjdGVyaWF8Y19fQ29yaW9iYWN0ZXJpaWF8b19fQ29yaW9iYWN0ZXJpYWxlc3xmX19Db3Jpb2JhY3RlcmlhY2VhZXxnX19Db2xsaW5zZWxsYXxzX19Db2xsaW5zZWxsYV9zdGVyY29yaXNcbiAga19fQmFjdGVyaWF8cF9fQWN0aW5vYmFjdGVyaWF8Y19fQ29yaW9iYWN0ZXJpaWF8b19fQ29yaW9iYWN0ZXJpYWxlc3xmX19Db3Jpb2JhY3RlcmlhY2VhZXxnX19Fbm9ybWF8c19fW0NvbGxpbnNlbGxhXV9tYXNzaWxpZW5zaXNcbiAga19fQmFjdGVyaWF8cF9fRmlybWljdXRlc3xjX19DbG9zdHJpZGlhfG9fX0Nsb3N0cmlkaWFsZXN8Zl9fUnVtaW5vY29jY2FjZWFlfGdfX1J1bWlub2NvY2N1c3xzX19SdW1pbm9jb2NjdXNfY2hhbXBhbmVsbGVuc2lzXG4gIGtfX0JhY3RlcmlhfHBfX1Byb3Rlb2JhY3RlcmlhfGNfX0JldGFwcm90ZW9iYWN0ZXJpYXxvX19CdXJraG9sZGVyaWFsZXN8Zl9fU3V0dGVyZWxsYWNlYWV8Z19fU3V0dGVyZWxsYXxzX19TdXR0ZXJlbGxhX3BhcnZpcnVicmFcbiAga19fQmFjdGVyaWF8cF9fU3luZXJnaXN0ZXRlc3xjX19TeW5lcmdpc3RpYXxvX19TeW5lcmdpc3RhbGVzfGZfX1N5bmVyZ2lzdGFjZWFlfGdfX0Nsb2FjaWJhY2lsbHVzfHNfX0Nsb2FjaWJhY2lsbHVzX2V2cnllbnNpc1xuXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuJGAyMDIxLTAzLTMxLlZpbmNlbnRDXzIwMTYucmVsYXRpdmVfYWJ1bmRhbmNlYFxuZHJvcHBpbmcgcm93cyB3aXRob3V0IHJvd1RyZWUgbWF0Y2hlczpcbiAga19fQmFjdGVyaWF8cF9fQWN0aW5vYmFjdGVyaWF8Y19fQ29yaW9iYWN0ZXJpaWF8b19fQ29yaW9iYWN0ZXJpYWxlc3xmX19Db3Jpb2JhY3RlcmlhY2VhZXxnX19Db2xsaW5zZWxsYXxzX19Db2xsaW5zZWxsYV9zdGVyY29yaXNcbiAga19fQmFjdGVyaWF8cF9fQWN0aW5vYmFjdGVyaWF8Y19fQ29yaW9iYWN0ZXJpaWF8b19fQ29yaW9iYWN0ZXJpYWxlc3xmX19Db3Jpb2JhY3RlcmlhY2VhZXxnX19Fbm9ybWF8c19fW0NvbGxpbnNlbGxhXV9tYXNzaWxpZW5zaXNcbiAga19fQmFjdGVyaWF8cF9fRmlybWljdXRlc3xjX19CYWNpbGxpfG9fX0JhY2lsbGFsZXN8Zl9fQmFjaWxsYWxlc191bmNsYXNzaWZpZWR8Z19fR2VtZWxsYXxzX19HZW1lbGxhX2JlcmdlcmlcbiAga19fQmFjdGVyaWF8cF9fRmlybWljdXRlc3xjX19CYWNpbGxpfG9fX0xhY3RvYmFjaWxsYWxlc3xmX19DYXJub2JhY3RlcmlhY2VhZXxnX19HcmFudWxpY2F0ZWxsYXxzX19HcmFudWxpY2F0ZWxsYV9lbGVnYW5zXG4gIGtfX0JhY3RlcmlhfHBfX0Zpcm1pY3V0ZXN8Y19fQ2xvc3RyaWRpYXxvX19DbG9zdHJpZGlhbGVzfGZfX1J1bWlub2NvY2NhY2VhZXxnX19SdW1pbm9jb2NjdXN8c19fUnVtaW5vY29jY3VzX2NoYW1wYW5lbGxlbnNpc1xuICBrX19CYWN0ZXJpYXxwX19GaXJtaWN1dGVzfGNfX0VyeXNpcGVsb3RyaWNoaWF8b19fRXJ5c2lwZWxvdHJpY2hhbGVzfGZfX0VyeXNpcGVsb3RyaWNoYWNlYWV8Z19fQnVsbGVpZGlhfHNfX0J1bGxlaWRpYV9leHRydWN0YVxuICBrX19CYWN0ZXJpYXxwX19Qcm90ZW9iYWN0ZXJpYXxjX19CZXRhcHJvdGVvYmFjdGVyaWF8b19fQnVya2hvbGRlcmlhbGVzfGZfX1N1dHRlcmVsbGFjZWFlfGdfX1N1dHRlcmVsbGF8c19fU3V0dGVyZWxsYV9wYXJ2aXJ1YnJhXG4gIGtfX0JhY3RlcmlhfHBfX1N5bmVyZ2lzdGV0ZXN8Y19fU3luZXJnaXN0aWF8b19fU3luZXJnaXN0YWxlc3xmX19TeW5lcmdpc3RhY2VhZXxnX19DbG9hY2liYWNpbGx1c3xzX19DbG9hY2liYWNpbGx1c19ldnJ5ZW5zaXNcblxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuIn0= -->
+<pre><code>snapshotDate(): 2022-04-26
+
+$`2021-03-31.RaymondF_2016.relative_abundance`
+dropping rows without rowTree matches:
+  k__Bacteria|p__Actinobacteria|c__Coriobacteriia|o__Coriobacteriales|f__Coriobacteriaceae|g__Collinsella|s__Collinsella_stercoris
+  k__Bacteria|p__Actinobacteria|c__Coriobacteriia|o__Coriobacteriales|f__Coriobacteriaceae|g__Enorma|s__[Collinsella]_massiliensis
+  k__Bacteria|p__Firmicutes|c__Clostridia|o__Clostridiales|f__Ruminococcaceae|g__Ruminococcus|s__Ruminococcus_champanellensis
+  k__Bacteria|p__Proteobacteria|c__Betaproteobacteria|o__Burkholderiales|f__Sutterellaceae|g__Sutterella|s__Sutterella_parvirubra
+  k__Bacteria|p__Synergistetes|c__Synergistia|o__Synergistales|f__Synergistaceae|g__Cloacibacillus|s__Cloacibacillus_evryensis
+
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+$`2021-03-31.VincentC_2016.relative_abundance`
+dropping rows without rowTree matches:
+  k__Bacteria|p__Actinobacteria|c__Coriobacteriia|o__Coriobacteriales|f__Coriobacteriaceae|g__Collinsella|s__Collinsella_stercoris
+  k__Bacteria|p__Actinobacteria|c__Coriobacteriia|o__Coriobacteriales|f__Coriobacteriaceae|g__Enorma|s__[Collinsella]_massiliensis
+  k__Bacteria|p__Firmicutes|c__Bacilli|o__Bacillales|f__Bacillales_unclassified|g__Gemella|s__Gemella_bergeri
+  k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae|g__Granulicatella|s__Granulicatella_elegans
+  k__Bacteria|p__Firmicutes|c__Clostridia|o__Clostridiales|f__Ruminococcaceae|g__Ruminococcus|s__Ruminococcus_champanellensis
+  k__Bacteria|p__Firmicutes|c__Erysipelotrichia|o__Erysipelotrichales|f__Erysipelotrichaceae|g__Bulleidia|s__Bulleidia_extructa
+  k__Bacteria|p__Proteobacteria|c__Betaproteobacteria|o__Burkholderiales|f__Sutterellaceae|g__Sutterella|s__Sutterella_parvirubra
+  k__Bacteria|p__Synergistetes|c__Synergistia|o__Synergistales|f__Synergistaceae|g__Cloacibacillus|s__Cloacibacillus_evryensis
+
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYXNzYXkocmF5dmluY2UpIDwtIGFzc2F5KHJheXZpbmNlKS8xMDBcbnJheXZpbmNlZ2VudXMgPC0gYWdnbG9tZXJhdGVCeVJhbmsocmF5dmluY2UsIFwiZ2VudXNcIilcbmBgYCJ9 -->
+<pre class="r"><code>assay(rayvince) &lt;- assay(rayvince)/100
+rayvincegenus &lt;- agglomerateByRank(rayvince, &quot;genus&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbiJ9 -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGh5bG9ydiA8LSBtYWtlUGh5bG9zZXFGcm9tVHJlZVN1bW1hcml6ZWRFeHBlcmltZW50KHJheXZpbmNlZ2VudXMsIGFidW5kX3ZhbHVlcyA9IFwicmVsYXRpdmVfYWJ1bmRhbmNlXCIpXG5gYGAifQ== -->
+<pre class="r"><code>phylorv &lt;- makePhyloseqFromTreeSummarizedExperiment(rayvincegenus, abund_values = &quot;relative_abundance&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbldhcm5pbmcgaW4gLmdldF94X3dpdGhfcHJ1bmVkX3RyZWUoeCkgOlxuICByb3dUcmVlIGlzIHBydW5lZCB0byBtYXRjaCByb3duYW1lcy5cbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuIn0= -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Warning in .get_x_with_pruned_tree(x) :
+  rowTree is pruned to match rownames.
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<div id="lookup-zaura-and-merge" class="section level2">
+<h2>Lookup Zaura and merge</h2>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuemF1cmFnZW51cyA8LSBzdWJzZXRfdGF4YSh6YXVyYSwgUmFuazYhPVwibm9uZVwiKVxuemF1cmFnIDwtIHRheF9nbG9tKHphdXJhZ2VudXMsIFwiUmFuazZcIilcbnphdXJhcHJvcCA8LSB0cmFuc2Zvcm1fc2FtcGxlX2NvdW50cyh6YXVyYWcsIGZ1bmN0aW9uKHgpIHggLyBzdW0oeCkpXG5cbiNHZXQgY29sdW1uIGZyb20gdGF4IHRhYmxlXG50YXhDb2wgPC0gdGF4X3RhYmxlKHphdXJhcHJvcClbLDZdXG4jU2VuZCBjb2x1bW4gY2VsbCB0byBuYW1lMnRheGlkXG5maXJzdGlkIDwtIGZ1bmN0aW9uKHgpe1xuICB5IDwtIG5hbWUydGF4aWQoeCwgb3V0X3R5cGUgPSBcInN1bW1hcnlcIilbMSwyXVxuICByZXR1cm4oeSlcbn1cbnRheExpc3QgPC0gbGFwcGx5KHRheENvbCwgZmlyc3RpZClcbnRheE5DQkkgPC0gbWFwX2Rmcih0YXhMaXN0LCBiaW5kX3Jvd3MpXG5cbmNvbnZlcnQybmNiaSA8LSBmdW5jdGlvbihwaHlsbyl7XG4gIHRheHRhYmxlIDwtIHRheF90YWJsZShwaHlsbylcbiAgcmFua3MgPC0gZGltKHRheHRhYmxlKVsyXVxuICB0YXhhIDwtIGRpbSh0YXh0YWJsZSlbMV1cbiAgbmNiaXMgPC0gZGF0YS5mcmFtZShudW09MTp0YXhhKVxuICBmb3IgKHggaW4gMTo2KXtcbiAgICB0YXhDb2wgPC0gdGF4dGFibGVbLHhdXG4gICAgdGF4TGlzdCA8LSBsYXBwbHkodGF4Q29sLCBmaXJzdGlkKVxuICAgIHRheE5DQkkgPC0gbWFwX2Rmcih0YXhMaXN0LCBiaW5kX3Jvd3MpXG4gICAgbmNiaXMgPC0gY2JpbmQobmNiaXMsIHRheE5DQkkpXG4gIH1cbiAgcmV0dXJuKG5jYmlzKVxufVxuXG5uY2JpcmFua3MgPC0gY29udmVydDJuY2JpKHphdXJhcHJvcClcblxucnZnZW5lcmEgPC0gcm93bmFtZXMob3R1X3RhYmxlKHBoeWxvcnYpKSAlPiUgc3RyaW5ncjo6c3RyX2V4dHJhY3QocGF0dGVybj1cIlxcXFxkezEsfVwiKVxubmNiaXJhbmtzWyw3XSAlaW4lICBydmdlbmVyYSAlPiUgdGFibGUoKVxuYGBgIn0= -->
+<pre class="r"><code>zauragenus &lt;- subset_taxa(zaura, Rank6!=&quot;none&quot;)
+zaurag &lt;- tax_glom(zauragenus, &quot;Rank6&quot;)
+zauraprop &lt;- transform_sample_counts(zaurag, function(x) x / sum(x))
+
+#Get column from tax table
+taxCol &lt;- tax_table(zauraprop)[,6]
+#Send column cell to name2taxid
+firstid &lt;- function(x){
+  y &lt;- name2taxid(x, out_type = &quot;summary&quot;)[1,2]
+  return(y)
+}
+taxList &lt;- lapply(taxCol, firstid)
+taxNCBI &lt;- map_dfr(taxList, bind_rows)
+
+convert2ncbi &lt;- function(phylo){
+  taxtable &lt;- tax_table(phylo)
+  ranks &lt;- dim(taxtable)[2]
+  taxa &lt;- dim(taxtable)[1]
+  ncbis &lt;- data.frame(num=1:taxa)
+  for (x in 1:6){
+    taxCol &lt;- taxtable[,x]
+    taxList &lt;- lapply(taxCol, firstid)
+    taxNCBI &lt;- map_dfr(taxList, bind_rows)
+    ncbis &lt;- cbind(ncbis, taxNCBI)
+  }
+  return(ncbis)
+}
+
+ncbiranks &lt;- convert2ncbi(zauraprop)
+
+rvgenera &lt;- rownames(otu_table(phylorv)) %&gt;% stringr::str_extract(pattern=&quot;\\d{1,}&quot;)
+ncbiranks[,7] %in%  rvgenera %&gt;% table()</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiLlxuRkFMU0UgIFRSVUUgXG4gIDEwMyAgIDEwOCBcbiJ9 -->
+<pre><code>.
+FALSE  TRUE 
+  103   108 </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubmV3cm93bmFtZXMgPC0gZGF0YS5mcmFtZShuZXduYW1lPW5jYmlyYW5rc1ssN10sIHRheF90YWJsZSh6YXVyYXByb3ApKVxuXG5uZXdyb3duYW1lcyA8LSBuZXdyb3duYW1lcyAlPiUgXG4gICAgbXV0YXRlKHJhbmtuYW1lID0gY29hbGVzY2UobmV3bmFtZSxSYW5rNikpXG5cbiNUaGVyZSdzIG9uZSBkdXBsaWNhdGUgc28gbGV0J3MganVzdCBjaGFuZ2UgaXQgZm9yIG5vd1xubmV3cm93bmFtZXMkcmFua25hbWVbbmV3cm93bmFtZXMkUmFuazY9PVwiQ2hyaXN0ZW5zZW5lbGxhXCJdIDwtIFwiZHVwbGljYXRlXCJcblxuI1VzZSBbMSwyXSByZXN1bHQgYW5kIHJldHVybiBpdFxuI01ha2UgbmV3IHRheCB0YWJsZSB3aXRoIHJlc3VsdHNcbnRheGFfbmFtZXMoemF1cmFwcm9wKSA8LSBuZXdyb3duYW1lcyRyYW5rbmFtZVxudGF4YV9uYW1lcyhwaHlsb3J2KSA8LSBydmdlbmVyYVxuYGBgIn0= -->
+<pre class="r"><code>newrownames &lt;- data.frame(newname=ncbiranks[,7], tax_table(zauraprop))
+
+newrownames &lt;- newrownames %&gt;% 
+    mutate(rankname = coalesce(newname,Rank6))
+
+#There&#39;s one duplicate so let&#39;s just change it for now
+newrownames$rankname[newrownames$Rank6==&quot;Christensenella&quot;] &lt;- &quot;duplicate&quot;
+
+#Use [1,2] result and return it
+#Make new tax table with results
+taxa_names(zauraprop) &lt;- newrownames$rankname
+taxa_names(phylorv) &lt;- rvgenera</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
 <pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
@@ -1825,98 +2313,613 @@ Also defined by ‘tidytree’</code></pre>
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
-<div id="convert-otu-table-to-proportions-and-trim" class="section level1">
-<h1>Convert OTU table to proportions and trim</h1>
+</div>
+<div id="proportions-in-cmd-are-presented-as-percentages.-need-to-be-decimals.-divide-by-100." class="section level1">
+<h1>Proportions in cMD are presented as percentages. Need to be
+decimals. Divide by 100.</h1>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBTZWxlY3Qgb25seSB0YXhhIG9uIHRoZSBnZW51cyBsZXZlbFxuc3Vic2V0X3RheGEoemF1cmEsIFJhbms2IT1cIm5vbmVcIilcblxuYGBgIn0= -->
-<pre class="r"><code># Select only taxa on the genus level
-subset_taxa(zaura, Rank6!=&quot;none&quot;)
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJ2dGF4YSA8LSBtZXJnZV90YXhhKHBoeWxvcnYsIHphdXJhcHJvcClcbmBgYCJ9 -->
+<pre class="r"><code>prvtaxa &lt;- merge_taxa(phylorv, zauraprop)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucnZ6IDwtIG1lcmdlX3BoeWxvc2VxKHBydnRheGEsIHphdXJhcHJvcClcbmBgYCJ9 -->
+<pre class="r"><code>rvz &lt;- merge_phyloseq(prvtaxa, zauraprop)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Have to recode all the antibiotics to match</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnggPC0gXCJub25lXCJcbmBgYCJ9 -->
+<pre class="r"><code>sample_data(rvz)$abx &lt;- &quot;none&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRzdHVkeV9jb25kaXRpb249PVwiYW1veFwiXSA8LSBcInBlbmljaWxsaW5zXCJcbmBgYCJ9 -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$study_condition==&quot;amox&quot;] &lt;- &quot;penicillins&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRzdHVkeV9jb25kaXRpb249PVwiY2VwaGFsb3Nwb3JpbnNcIl0gPC0gXCJjZXBoYWxvc3Bvcmluc1wiXG5gYGAifQ== -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$study_condition==&quot;cephalosporins&quot;] &lt;- &quot;cephalosporins&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRzdHVkeV9jb25kaXRpb249PVwiY2lwcm9cIl0gPC0gXCJxdWlub2xvbmVzXCJcbmBgYCJ9 -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$study_condition==&quot;cipro&quot;] &lt;- &quot;quinolones&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRzdHVkeV9jb25kaXRpb249PVwiY2xpbmRhXCJdIDwtIFwibGluY29zYW1pZGVzXCJcbmBgYCJ9 -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$study_condition==&quot;clinda&quot;] &lt;- &quot;lincosamides&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRzdHVkeV9jb25kaXRpb249PVwiY29udHJvbFwiXSA8LSBcIm5vbmVcIlxuYGBgIn0= -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$study_condition==&quot;control&quot;] &lt;- &quot;none&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRzdHVkeV9jb25kaXRpb249PVwibWlub2NcIl0gPC0gXCJ0ZXRyYWN5Y2xpbmVzXCJcbmBgYCJ9 -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$study_condition==&quot;minoc&quot;] &lt;- &quot;tetracyclines&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRzdHVkeV9jb25kaXRpb249PVwibWlub2MsIG1pbm9jXCJdIDwtIFwidGV0cmFjeWNsaW5lc1wiXG5gYGAifQ== -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$study_condition==&quot;minoc, minoc&quot;] &lt;- &quot;tetracyclines&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRzdHVkeV9jb25kaXRpb249PVwicGxhY2Vib1wiXSA8LSBcIm5vbmVcIlxuYGBgIn0= -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$study_condition==&quot;placebo&quot;] &lt;- &quot;none&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRhbnRpYmlvdGljc19mYW1pbHk9PVwiYW1pbm9nbHljb3NpZGVzO2JldGFfbGFjdGFtYXNlX2luaGliaXRvcnM7bGF4YXRpdmVzO3BlbmljaWxsaW4gXCJdIDwtIFwibXVsdGlcIlxuYGBgIn0= -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family==&quot;aminoglycosides;beta_lactamase_inhibitors;laxatives;penicillin &quot;] &lt;- &quot;multi&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRhbnRpYmlvdGljc19mYW1pbHk9PVwiYmV0YV9sYWN0YW1hc2VfaW5oaWJpdG9ycztjYXJiYXBlbmVtcztjZXBoYWxvc3BvcmlucztmbHVvcm9xdWlub2xvbmVzO3BlbmljaWxsaW4gXCJdIDwtIFwibXVsdGlcIlxuYGBgIn0= -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family==&quot;beta_lactamase_inhibitors;carbapenems;cephalosporins;fluoroquinolones;penicillin &quot;] &lt;- &quot;multi&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRhbnRpYmlvdGljc19mYW1pbHk9PVwiYmV0YV9sYWN0YW1hc2VfaW5oaWJpdG9ycztjYXJiYXBlbmVtcztjZXBoYWxvc3BvcmlucztwZW5pY2lsbGluXCJdIDwtIFwibXVsdGlcIlxuYGBgIn0= -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family==&quot;beta_lactamase_inhibitors;carbapenems;cephalosporins;penicillin&quot;] &lt;- &quot;multi&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRhbnRpYmlvdGljc19mYW1pbHk9PVwiYmV0YV9sYWN0YW1hc2VfaW5oaWJpdG9ycztjYXJiYXBlbmVtcztmbHVvcm9xdWlub2xvbmVzO3BlbmljaWxsaW5cIl0gPC0gXCJtdWx0aVwiXG5gYGAifQ== -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family==&quot;beta_lactamase_inhibitors;carbapenems;fluoroquinolones;penicillin&quot;] &lt;- &quot;multi&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRhbnRpYmlvdGljc19mYW1pbHk9PVwiYmV0YV9sYWN0YW1hc2VfaW5oaWJpdG9yczttYWNyb2xpZGVzO3BlbmljaWxsaW5cIl0gPC0gXCJtdWx0aVwiXG5gYGAifQ== -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family==&quot;beta_lactamase_inhibitors;macrolides;penicillin&quot;] &lt;- &quot;multi&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRhbnRpYmlvdGljc19mYW1pbHk9PVwiYmV0YV9sYWN0YW1hc2VfaW5oaWJpdG9ycztwZW5pY2lsbGluXCJdIDwtIFwicGVuaWNpbGxpbnNcIlxuYGBgIn0= -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family==&quot;beta_lactamase_inhibitors;penicillin&quot;] &lt;- &quot;penicillins&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRhbnRpYmlvdGljc19mYW1pbHk9PVwiY2FyYmFwZW5lbXNcIl0gPC0gXCJjYXJiYXBlbmVtc1wiXG5gYGAifQ== -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family==&quot;carbapenems&quot;] &lt;- &quot;carbapenems&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRhbnRpYmlvdGljc19mYW1pbHk9PVwiY2FyYmFwZW5lbXM7Zmx1b3JvcXVpbm9sb25lc1wiXSA8LSBcIm11bHRpXCJcbmBgYCJ9 -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family==&quot;carbapenems;fluoroquinolones&quot;] &lt;- &quot;multi&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRhbnRpYmlvdGljc19mYW1pbHk9PVwiY2FyYmFwZW5lbXM7Zmx1b3JvcXVpbm9sb25lcztsYXhhdGl2ZXNcIl0gPC0gXCJtdWx0aVwiXG5gYGAifQ== -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family==&quot;carbapenems;fluoroquinolones;laxatives&quot;] &lt;- &quot;multi&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRhbnRpYmlvdGljc19mYW1pbHk9PVwiY2FyYmFwZW5lbXM7bGF4YXRpdmVzXCJdIDwtIFwiY2FiYXBlbmVtc1wiXG5gYGAifQ== -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family==&quot;carbapenems;laxatives&quot;] &lt;- &quot;cabapenems&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRhbnRpYmlvdGljc19mYW1pbHk9PVwiY2VwaGFsb3Nwb3JpbnNcIl0gPC0gXCJjZXBoYWxvc3Bvcmluc1wiXG5gYGAifQ== -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family==&quot;cephalosporins&quot;] &lt;- &quot;cephalosporins&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRhbnRpYmlvdGljc19mYW1pbHk9PVwiZmx1b3JvcXVpbm9sb25lc1wiXSA8LSBcImZsdW9yb3F1aW5vbG9uZXNcIlxuYGBgIn0= -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family==&quot;fluoroquinolones&quot;] &lt;- &quot;fluoroquinolones&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRhbnRpYmlvdGljc19mYW1pbHk9PVwibWFjcm9saWRlc1wiXSA8LSBcIm1hY3JvbGlkZXNcIlxuYGBgIn0= -->
+<pre class="r"><code>sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family==&quot;macrolides&quot;] &lt;- &quot;macrolides&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnh5bltzYW1wbGVfZGF0YShydnopJGFieD09XCJub25lXCJdPC1cIm5vbmVcIlxuYGBgIn0= -->
+<pre class="r"><code>sample_data(rvz)$abxyn[sample_data(rvz)$abx==&quot;none&quot;]&lt;-&quot;none&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlX2RhdGEocnZ6KSRhYnh5bltzYW1wbGVfZGF0YShydnopJGFieCE9XCJub25lXCJdPC1cImFudGliaW90aWNzXCJcbmBgYCJ9 -->
+<pre class="r"><code>sample_data(rvz)$abxyn[sample_data(rvz)$abx!=&quot;none&quot;]&lt;-&quot;antibiotics&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbkZvdW5kIG1vcmUgdGhhbiBvbmUgY2xhc3MgXCJwaHlsb1wiIGluIGNhY2hlOyB1c2luZyB0aGUgZmlyc3QsIGZyb20gbmFtZXNwYWNlICdwaHlsb3NlcSdcbkFsc28gZGVmaW5lZCBieSDigJh0aWR5dHJlZeKAmVxuRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG4ifQ== -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucnZ6dHNlIDwtIG1ha2VUcmVlU3VtbWFyaXplZEV4cGVyaW1lbnRGcm9tUGh5bG9zZXEocnZ6KVxuYGBgIn0= -->
+<pre class="r"><code>rvztse &lt;- makeTreeSummarizedExperimentFromPhyloseq(rvz)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRm91bmQgbW9yZSB0aGFuIG9uZSBjbGFzcyBcInBoeWxvXCIgaW4gY2FjaGU7IHVzaW5nIHRoZSBmaXJzdCwgZnJvbSBuYW1lc3BhY2UgJ3BoeWxvc2VxJ1xuQWxzbyBkZWZpbmVkIGJ5IOKAmHRpZHl0cmVl4oCZXG5Gb3VuZCBtb3JlIHRoYW4gb25lIGNsYXNzIFwicGh5bG9cIiBpbiBjYWNoZTsgdXNpbmcgdGhlIGZpcnN0LCBmcm9tIG5hbWVzcGFjZSAncGh5bG9zZXEnXG5BbHNvIGRlZmluZWQgYnkg4oCYdGlkeXRyZWXigJlcbiJ9 -->
+<pre><code>Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’
+Found more than one class &quot;phylo&quot; in cache; using the first, from namespace &#39;phyloseq&#39;
+Also defined by ‘tidytree’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucnZ6dGlkeSA8LSB0aWR5KHJ2enRzZSwgYWRkUGhlbm8gPSBUUlVFKVxuYGBgIn0= -->
+<pre class="r"><code>rvztidy &lt;- tidy(rvztse, addPheno = TRUE)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiV2FybmluZzogYHRibF9kZigpYCB3YXMgZGVwcmVjYXRlZCBpbiBkcGx5ciAxLjAuMC5cblBsZWFzZSB1c2UgYHRpYmJsZTo6YXNfdGliYmxlKClgIGluc3RlYWQuXG5UaGlzIHdhcm5pbmcgaXMgZGlzcGxheWVkIG9uY2UgZXZlcnkgOCBob3Vycy5cbkNhbGwgYGxpZmVjeWNsZTo6bGFzdF9saWZlY3ljbGVfd2FybmluZ3MoKWAgdG8gc2VlIHdoZXJlIHRoaXMgd2FybmluZyB3YXMgZ2VuZXJhdGVkLlxuIn0= -->
+<pre><code>Warning: `tbl_df()` was deprecated in dplyr 1.0.0.
+Please use `tibble::as_tibble()` instead.
+This warning is displayed once every 8 hours.
+Call `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucnZ6d2lkZSA8LSBwaXZvdF93aWRlcihydnp0aWR5LCBuYW1lc19mcm9tID0gZ2VuZSwgdmFsdWVzX2Zyb20gPSB2YWx1ZSlcbmBgYCJ9 -->
+<pre class="r"><code>rvzwide &lt;- pivot_wider(rvztidy, names_from = gene, values_from = value)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>It’s really bad. Probably need to do some resampling and maybe not
+agglomerate to class</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucnZ6c3ViIDwtIHJ2endpZGUgJT4lIHNlbGVjdChjKFwiYWJ4eW5cIiwgXCJzdHVkeV9uYW1lXCIsIFwiZGF5c19mcm9tX2ZpcnN0X2NvbGxlY3Rpb25cIlxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbWF0Y2hlcyhcIlxcXFxkJFwiKSwgLVwiZ2xwXzFcIiwgLVwiY2QxNjNcIiwgLVwiaWxfMVwiLCAtIFwiUEZTMTJcIixcblxuYGBgIn0= -->
+<pre class="r"><code>rvzsub &lt;- rvzwide %&gt;% select(c(&quot;abxyn&quot;, &quot;study_name&quot;, &quot;days_from_first_collection&quot;
+                              matches(&quot;\\d$&quot;), -&quot;glp_1&quot;, -&quot;cd163&quot;, -&quot;il_1&quot;, - &quot;PFS12&quot;,
 </code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGh5bG9zZXEtY2xhc3MgZXhwZXJpbWVudC1sZXZlbCBvYmplY3Rcbm90dV90YWJsZSgpICAgT1RVIFRhYmxlOiAgICAgICAgIFsgMTc3NTYgdGF4YSBhbmQgMzg5IHNhbXBsZXMgXVxuc2FtcGxlX2RhdGEoKSBTYW1wbGUgRGF0YTogICAgICAgWyAzODkgc2FtcGxlcyBieSAyNSBzYW1wbGUgdmFyaWFibGVzIF1cbnRheF90YWJsZSgpICAgVGF4b25vbXkgVGFibGU6ICAgIFsgMTc3NTYgdGF4YSBieSA3IHRheG9ub21pYyByYW5rcyBdXG4ifQ== -->
-<pre><code>phyloseq-class experiment-level object
-otu_table()   OTU Table:         [ 17756 taxa and 389 samples ]
-sample_data() Sample Data:       [ 389 samples by 25 sample variables ]
-tax_table()   Taxonomy Table:    [ 17756 taxa by 7 taxonomic ranks ]</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3I6IHVuZXhwZWN0ZWQgc3ltYm9sIGluOlxuXCJydnpzdWIgPC0gcnZ6d2lkZSAlPiUgc2VsZWN0KGMoXCJhYnh5blwiLCBcInN0dWR5X25hbWVcIiwgXCJkYXlzX2Zyb21fZmlyc3RfY29sbGVjdGlvblwiXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBtYXRjaGVzXCJcbiJ9 -->
+<pre><code>Error: unexpected symbol in:
+&quot;rvzsub &lt;- rvzwide %&gt;% select(c(&quot;abxyn&quot;, &quot;study_name&quot;, &quot;days_from_first_collection&quot;
+                              matches&quot;</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
-<div id="turn-it-into-a-tse-and-tidy-it" class="section level1">
-<h1>Turn it into a TSE and tidy it</h1>
+<div id="divide-dataset-into-three-separate-datasets-by-name" class="section level1">
+<h1>Divide dataset into three separate datasets by name</h1>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuWmF1cmF0c2UgPC0gbWFrZVRyZWVTdW1tYXJpemVkRXhwZXJpbWVudEZyb21QaHlsb3NlcSh6YXVyYVBydW5lZClcblphdXJhdGlkeSA8LSB0aWR5KFphdXJhdHNlLCBhZGRQaGVubyA9IFRSVUUpXG5aYXVyYXdpZGUgPC0gcGl2b3Rfd2lkZXIoWmF1cmF0aWR5LCBuYW1lc19mcm9tID0gZ2VuZSwgdmFsdWVzX2Zyb20gPSB2YWx1ZSlcbmBgYCJ9 -->
-<pre class="r"><code>Zauratse &lt;- makeTreeSummarizedExperimentFromPhyloseq(zauraPruned)
-Zauratidy &lt;- tidy(Zauratse, addPheno = TRUE)
-Zaurawide &lt;- pivot_wider(Zauratidy, names_from = gene, values_from = value)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmF5c3ViIDwtIHJ2enN1YltydnpzdWIkc3R1ZHlfbmFtZT09XCJSYXltb25kRl8yMDE2XCIsXVxudmluc3ViIDwtIHJ2enN1YltydnpzdWIkc3R1ZHlfbmFtZT09XCJWaW5jZW50Q18yMDE2XCIsXVxuemF1c3ViIDwtIHJ2enN1YltydnpzdWIkc3R1ZHlfbmFtZT09XCJaYXVyYUVfMjAxNVwiLF1cbmBgYCJ9 -->
+<pre class="r"><code>raysub &lt;- rvzsub[rvzsub$study_name==&quot;RaymondF_2016&quot;,]
+vinsub &lt;- rvzsub[rvzsub$study_name==&quot;VincentC_2016&quot;,]
+zausub &lt;- rvzsub[rvzsub$study_name==&quot;ZauraE_2015&quot;,]</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="ensemble-y-analysis" class="section level1">
+<h1>Ensemble-y analysis</h1>
+</div>
+<div id="fit-a-prediction-model-on-each-dataset-then-apply-that-model-to-the-other-two-datasets" class="section level1">
+<h1>Fit a prediction model on each dataset then apply that model to the
+other two datasets</h1>
+<div id="raymond" class="section level2">
+<h2>raymond</h2>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MSwibmNvbCI6Mywic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyIxIMOXIDMiXX19LCJyZGYiOiJVa1JZTXdwWUNnQUFBQU1BQkFJQUFBTUZBQUFBQUFWVlZFWXRPQUFBQkFJQUFBQUJBQVFBQ1FBQUFBRjRBQUFERXdBQUFBTUFBQUFRQUFBQUFRQUVBQWtBQUFBSVlXTmpkWEpoWTNrQUFBQVFBQUFBQVFBRUFBa0FBQUFHWW1sdVlYSjVBQUFBRGdBQUFBRS93d0VlTHZPei9BQUFCQUlBQUFBQkFBUUFDUUFBQUFWdVlXMWxjd0FBQUJBQUFBQURBQVFBQ1FBQUFBY3ViV1YwY21sakFBUUFDUUFBQUFvdVpYTjBhVzFoZEc5eUFBUUFDUUFBQUFrdVpYTjBhVzFoZEdVQUFBUUNBQUFBQVFBRUFBa0FBQUFKY205M0xtNWhiV1Z6QUFBQURRQUFBQUtBQUFBQS8vLy8vd0FBQkFJQUFBQUJBQVFBQ1FBQUFBVmpiR0Z6Y3dBQUFCQUFBQUFCQUFRQUNRQUFBQXBrWVhSaExtWnlZVzFsQUFBQS9nQUFCQUlBQUFBQkFBUUFDUUFBQUFkdmNIUnBiMjV6QUFBQ0V3QUFBQVVBQUFBUUFBQUFBUUFFQUFrQUFBQUJjZ0FBQUJBQUFBQUJBQVFBQ1FBQUFBOTFibTVoYldWa0xXTm9kVzVyTFRRQUFBQUtBQUFBQVFBQUFBQUFBQUFOQUFBQUFRQUFBQUVBQUFBTkFBQUFBUUFBQUFNQUFBUUNBQUFDL3dBQUFCQUFBQUFGQUFRQUNRQUFBQVpsYm1kcGJtVUFCQUFKQUFBQUJXeGhZbVZzQUFRQUNRQUFBQTV5YjNkdVlXMWxjeTV3Y21sdWRBQUVBQWtBQUFBS2NtOTNjeTUwYjNSaGJBQUVBQWtBQUFBS1kyOXNjeTUwYjNSaGJBQUFBUDRBQUFEKyJ9 -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[".metric"],"name":[1],"type":["chr"],"align":["left"]},{"label":[".estimator"],"name":[2],"type":["chr"],"align":["left"]},{"label":[".estimate"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"accuracy","2":"binary","3":"0.1484716"}],"options":{"columns":{"min":{},"max":[10],"total":[3]},"rows":{"min":[10],"max":[10],"total":[1]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBTZWxlY3Qgb25seSB0aGUgbWljcm9iaW9tZSB2YXJzXG5aYXVyYXN1YjwtIFphdXJhd2lkZSAlPiUgc2VsZWN0KGMoXCJUcmVhdG1lbnRHcm91cFwiLCBzdGFydHNfd2l0aChcInNlcVwiKSkpXG5aYXVyYXN1YiRUcmVhdG1lbnRHcm91cCA8LSBmYWN0b3IoWmF1cmFzdWIkVHJlYXRtZW50R3JvdXApXG5zZXQuc2VlZCg3MzI5ODEpXG5aYXVyYXNwbGl0IDwtIGluaXRpYWxfc3BsaXQoWmF1cmFzdWIpXG5aYXVyYXRyYWluIDwtIHRyYWluaW5nKFphdXJhc3BsaXQpXG5aYXVyYXRlc3QgPC0gdGVzdGluZyhaYXVyYXNwbGl0KVxuXG5yZl9tb2QgPC0gXG4gIHJhbmRfZm9yZXN0KHRyZWVzID0gNTAwKSAlPiUgXG4gIHNldF9lbmdpbmUoXCJyYW5nZXJcIikgJT4lIFxuICBzZXRfbW9kZShcImNsYXNzaWZpY2F0aW9uXCIpXG5cbnJmX2ZpdCA8LSByZl9tb2QgJT4lIFxuICBmaXQoVHJlYXRtZW50R3JvdXAgfiAuLCBkYXRhPVphdXJhdHJhaW4pXG5cbnJmX3Rlc3RpbmdfcHJlZCA8LSBcbiAgcHJlZGljdChyZl9maXQsIFphdXJhdGVzdCkgJT4lIFxuICBiaW5kX2NvbHMocHJlZGljdChyZl9maXQsIFphdXJhdGVzdCwgdHlwZSA9IFwicHJvYlwiKSkgJT4lIFxuICBiaW5kX2NvbHMoWmF1cmF0ZXN0ICU+JSBzZWxlY3QoVHJlYXRtZW50R3JvdXApKVxuI3JmX3Rlc3RpbmdfcHJlZCAlPiUgICAgICAgICAgICAgICAgICAgIyB0ZXN0IHNldCBwcmVkaWN0aW9uc1xuIyAgICByb2NfYXVjKHRydXRoID0gc3R1ZHlfY29uZGl0aW9uLCBlc3RpbWF0ZT0ucHJlZF9hbW94aWNpbGxpbilcbnJmX3Rlc3RpbmdfcHJlZCAlPiUgICAgICAgICAgICAgICAgICAgIyB0ZXN0IHNldCBwcmVkaWN0aW9uc1xuICBhY2N1cmFjeSh0cnV0aCA9IFRyZWF0bWVudEdyb3VwLCAucHJlZF9jbGFzcylcbmBgYCJ9 -->
-<pre class="r"><code># Select only the microbiome vars
-Zaurasub&lt;- Zaurawide %&gt;% select(c(&quot;TreatmentGroup&quot;, starts_with(&quot;seq&quot;)))
-Zaurasub$TreatmentGroup &lt;- factor(Zaurasub$TreatmentGroup)
-set.seed(732981)
-Zaurasplit &lt;- initial_split(Zaurasub)
-Zauratrain &lt;- training(Zaurasplit)
-Zauratest &lt;- testing(Zaurasplit)
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MSwibmNvbCI6Mywic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyIxIMOXIDMiXX19LCJyZGYiOiJVa1JZTXdwWUNnQUFBQU1BQkFJQUFBTUZBQUFBQUFWVlZFWXRPQUFBQkFJQUFBQUJBQVFBQ1FBQUFBRjRBQUFERXdBQUFBTUFBQUFRQUFBQUFRQUVBQWtBQUFBSVlXTmpkWEpoWTNrQUFBQVFBQUFBQVFBRUFBa0FBQUFHWW1sdVlYSjVBQUFBRGdBQUFBRS8xbUFWRHlMaEVnQUFCQUlBQUFBQkFBUUFDUUFBQUFWdVlXMWxjd0FBQUJBQUFBQURBQVFBQ1FBQUFBY3ViV1YwY21sakFBUUFDUUFBQUFvdVpYTjBhVzFoZEc5eUFBUUFDUUFBQUFrdVpYTjBhVzFoZEdVQUFBUUNBQUFBQVFBRUFBa0FBQUFKY205M0xtNWhiV1Z6QUFBQURRQUFBQUtBQUFBQS8vLy8vd0FBQkFJQUFBQUJBQVFBQ1FBQUFBVmpiR0Z6Y3dBQUFCQUFBQUFCQUFRQUNRQUFBQXBrWVhSaExtWnlZVzFsQUFBQS9nQUFCQUlBQUFBQkFBUUFDUUFBQUFkdmNIUnBiMjV6QUFBQ0V3QUFBQVVBQUFBUUFBQUFBUUFFQUFrQUFBQUJjZ0FBQUJBQUFBQUJBQVFBQ1FBQUFCQjFibTVoYldWa0xXTm9kVzVyTFRFMUFBQUFDZ0FBQUFFQUFBQUFBQUFBRFFBQUFBRUFBQUFCQUFBQURRQUFBQUVBQUFBREFBQUVBZ0FBQXY4QUFBQVFBQUFBQlFBRUFBa0FBQUFHWlc1bmFXNWxBQVFBQ1FBQUFBVnNZV0psYkFBRUFBa0FBQUFPY205M2JtRnRaWE11Y0hKcGJuUUFCQUFKQUFBQUNuSnZkM011ZEc5MFlXd0FCQUFKQUFBQUNtTnZiSE11ZEc5MFlXd0FBQUQrQUFBQS9nPT0ifQ== -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[".metric"],"name":[1],"type":["chr"],"align":["left"]},{"label":[".estimator"],"name":[2],"type":["chr"],"align":["left"]},{"label":[".estimate"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"accuracy","2":"binary","3":"0.3496144"}],"options":{"columns":{"min":{},"max":[10],"total":[3]},"rows":{"min":[10],"max":[10],"total":[1]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuemF1X2ZpdCA8LSByZl9tb2QgJT4lIFxuICBmaXQoYWJ4eW4gfiAuLCBkYXRhPXphdXN1YilcblxuemF1X3JheV9wcmVkIDwtIFxuICBwcmVkaWN0KHphdV9maXQsIHJheXN1YikgJT4lIFxuICBiaW5kX2NvbHMocHJlZGljdCh6YXVfZml0LCByYXlzdWIsIHR5cGUgPSBcInByb2JcIikpICU+JSBcbiAgYmluZF9jb2xzKHJheXN1YiAlPiUgc2VsZWN0KGFieHluKSlcbnphdV9yYXlfcHJlZCAlPiUgICAgICAgICAgICAgICAgICAgIyB0ZXN0IHNldCBwcmVkaWN0aW9uc1xuICAgIHJvY19hdWModHJ1dGggPSBhYnh5biwgZXN0aW1hdGU9LnByZWRfYW50aWJpb3RpY3MpXG5gYGAifQ== -->
+<pre class="r"><code>zau_fit &lt;- rf_mod %&gt;% 
+  fit(abxyn ~ ., data=zausub)
+
+zau_ray_pred &lt;- 
+  predict(zau_fit, raysub) %&gt;% 
+  bind_cols(predict(zau_fit, raysub, type = &quot;prob&quot;)) %&gt;% 
+  bind_cols(raysub %&gt;% select(abxyn))
+zau_ray_pred %&gt;%                   # test set predictions
+    roc_auc(truth = abxyn, estimate=.pred_antibiotics)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MSwibmNvbCI6Mywic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyIxIMOXIDMiXX19LCJyZGYiOiJVa1JZTXdwWUNnQUFBQU1BQkFJQUFBTUZBQUFBQUFWVlZFWXRPQUFBQkFJQUFBQUJBQVFBQ1FBQUFBRjRBQUFERXdBQUFBTUFBQUFRQUFBQUFRQUVBQWtBQUFBSGNtOWpYMkYxWXdBQUFCQUFBQUFCQUFRQUNRQUFBQVppYVc1aGNua0FBQUFPQUFBQUFUL25ZZm10MDhES0FBQUVBZ0FBQUFFQUJBQUpBQUFBQlc1aGJXVnpBQUFBRUFBQUFBTUFCQUFKQUFBQUJ5NXRaWFJ5YVdNQUJBQUpBQUFBQ2k1bGMzUnBiV0YwYjNJQUJBQUpBQUFBQ1M1bGMzUnBiV0YwWlFBQUJBSUFBQUFCQUFRQUNRQUFBQWx5YjNjdWJtRnRaWE1BQUFBTkFBQUFBb0FBQUFELy8vLy9BQUFFQWdBQUFBRUFCQUFKQUFBQUJXTnNZWE56QUFBQUVBQUFBQUVBQkFBSkFBQUFDbVJoZEdFdVpuSmhiV1VBQUFEK0FBQUVBZ0FBQUFFQUJBQUpBQUFBQjI5d2RHbHZibk1BQUFJVEFBQUFCUUFBQUJBQUFBQUJBQVFBQ1FBQUFBRnlBQUFBRUFBQUFBRUFCQUFKQUFBQUVIVnVibUZ0WldRdFkyaDFibXN0TVRrQUFBQUtBQUFBQVFBQUFBQUFBQUFOQUFBQUFRQUFBQUVBQUFBTkFBQUFBUUFBQUFNQUFBUUNBQUFDL3dBQUFCQUFBQUFGQUFRQUNRQUFBQVpsYm1kcGJtVUFCQUFKQUFBQUJXeGhZbVZzQUFRQUNRQUFBQTV5YjNkdVlXMWxjeTV3Y21sdWRBQUVBQWtBQUFBS2NtOTNjeTUwYjNSaGJBQUVBQWtBQUFBS1kyOXNjeTUwYjNSaGJBQUFBUDRBQUFEKyJ9 -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[".metric"],"name":[1],"type":["chr"],"align":["left"]},{"label":[".estimator"],"name":[2],"type":["chr"],"align":["left"]},{"label":[".estimate"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"roc_auc","2":"binary","3":"0.7307099"}],"options":{"columns":{"min":{},"max":[10],"total":[3]},"rows":{"min":[10],"max":[10],"total":[1]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuemF1X3JheV9wcmVkICU+JSAgICAgICAgICAgICAgICAgICAjIHRlc3Qgc2V0IHByZWRpY3Rpb25zXG4gIGFjY3VyYWN5KHRydXRoID0gYWJ4eW4sIC5wcmVkX2NsYXNzKVxuYGBgIn0= -->
+<pre class="r"><code>zau_ray_pred %&gt;%                   # test set predictions
+  accuracy(truth = abxyn, .pred_class)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MSwibmNvbCI6Mywic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyIxIMOXIDMiXX19LCJyZGYiOiJVa1JZTXdwWUNnQUFBQU1BQkFJQUFBTUZBQUFBQUFWVlZFWXRPQUFBQkFJQUFBQUJBQVFBQ1FBQUFBRjRBQUFERXdBQUFBTUFBQUFRQUFBQUFRQUVBQWtBQUFBSVlXTmpkWEpoWTNrQUFBQVFBQUFBQVFBRUFBa0FBQUFHWW1sdVlYSjVBQUFBRGdBQUFBRS80SEhISEhISEhBQUFCQUlBQUFBQkFBUUFDUUFBQUFWdVlXMWxjd0FBQUJBQUFBQURBQVFBQ1FBQUFBY3ViV1YwY21sakFBUUFDUUFBQUFvdVpYTjBhVzFoZEc5eUFBUUFDUUFBQUFrdVpYTjBhVzFoZEdVQUFBUUNBQUFBQVFBRUFBa0FBQUFKY205M0xtNWhiV1Z6QUFBQURRQUFBQUtBQUFBQS8vLy8vd0FBQkFJQUFBQUJBQVFBQ1FBQUFBVmpiR0Z6Y3dBQUFCQUFBQUFCQUFRQUNRQUFBQXBrWVhSaExtWnlZVzFsQUFBQS9nQUFCQUlBQUFBQkFBUUFDUUFBQUFkdmNIUnBiMjV6QUFBQ0V3QUFBQVVBQUFBUUFBQUFBUUFFQUFrQUFBQUJjZ0FBQUJBQUFBQUJBQVFBQ1FBQUFCQjFibTVoYldWa0xXTm9kVzVyTFRFNUFBQUFDZ0FBQUFFQUFBQUFBQUFBRFFBQUFBRUFBQUFCQUFBQURRQUFBQUVBQUFBREFBQUVBZ0FBQXY4QUFBQVFBQUFBQlFBRUFBa0FBQUFHWlc1bmFXNWxBQVFBQ1FBQUFBVnNZV0psYkFBRUFBa0FBQUFPY205M2JtRnRaWE11Y0hKcGJuUUFCQUFKQUFBQUNuSnZkM011ZEc5MFlXd0FCQUFKQUFBQUNtTnZiSE11ZEc5MFlXd0FBQUQrQUFBQS9nPT0ifQ== -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[".metric"],"name":[1],"type":["chr"],"align":["left"]},{"label":[".estimator"],"name":[2],"type":["chr"],"align":["left"]},{"label":[".estimate"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"accuracy","2":"binary","3":"0.5138889"}],"options":{"columns":{"min":{},"max":[10],"total":[3]},"rows":{"min":[10],"max":[10],"total":[1]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG56YXVfdmluX3ByZWQgPC0gXG4gIHByZWRpY3QoemF1X2ZpdCwgdmluc3ViKSAlPiUgXG4gIGJpbmRfY29scyhwcmVkaWN0KHphdV9maXQsIHZpbnN1YiwgdHlwZSA9IFwicHJvYlwiKSkgJT4lIFxuICBiaW5kX2NvbHModmluc3ViICU+JSBzZWxlY3QoYWJ4eW4pKVxuemF1X3Zpbl9wcmVkICU+JSAgICAgICAgICAgICAgICAgICAjIHRlc3Qgc2V0IHByZWRpY3Rpb25zXG4gICAgcm9jX2F1Yyh0cnV0aCA9IGFieHluLCBlc3RpbWF0ZT0ucHJlZF9hbnRpYmlvdGljcylcbmBgYCJ9 -->
+<pre class="r"><code>
+zau_vin_pred &lt;- 
+  predict(zau_fit, vinsub) %&gt;% 
+  bind_cols(predict(zau_fit, vinsub, type = &quot;prob&quot;)) %&gt;% 
+  bind_cols(vinsub %&gt;% select(abxyn))
+zau_vin_pred %&gt;%                   # test set predictions
+    roc_auc(truth = abxyn, estimate=.pred_antibiotics)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MSwibmNvbCI6Mywic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyIxIMOXIDMiXX19LCJyZGYiOiJVa1JZTXdwWUNnQUFBQU1BQkFJQUFBTUZBQUFBQUFWVlZFWXRPQUFBQkFJQUFBQUJBQVFBQ1FBQUFBRjRBQUFERXdBQUFBTUFBQUFRQUFBQUFRQUVBQWtBQUFBSGNtOWpYMkYxWXdBQUFCQUFBQUFCQUFRQUNRQUFBQVppYVc1aGNua0FBQUFPQUFBQUFUL2tGdnY0SENGSEFBQUVBZ0FBQUFFQUJBQUpBQUFBQlc1aGJXVnpBQUFBRUFBQUFBTUFCQUFKQUFBQUJ5NXRaWFJ5YVdNQUJBQUpBQUFBQ2k1bGMzUnBiV0YwYjNJQUJBQUpBQUFBQ1M1bGMzUnBiV0YwWlFBQUJBSUFBQUFCQUFRQUNRQUFBQWx5YjNjdWJtRnRaWE1BQUFBTkFBQUFBb0FBQUFELy8vLy9BQUFFQWdBQUFBRUFCQUFKQUFBQUJXTnNZWE56QUFBQUVBQUFBQUVBQkFBSkFBQUFDbVJoZEdFdVpuSmhiV1VBQUFEK0FBQUVBZ0FBQUFFQUJBQUpBQUFBQjI5d2RHbHZibk1BQUFJVEFBQUFCUUFBQUJBQUFBQUJBQVFBQ1FBQUFBRnlBQUFBRUFBQUFBRUFCQUFKQUFBQUVIVnVibUZ0WldRdFkyaDFibXN0TVRrQUFBQUtBQUFBQVFBQUFBQUFBQUFOQUFBQUFRQUFBQUVBQUFBTkFBQUFBUUFBQUFNQUFBUUNBQUFDL3dBQUFCQUFBQUFGQUFRQUNRQUFBQVpsYm1kcGJtVUFCQUFKQUFBQUJXeGhZbVZzQUFRQUNRQUFBQTV5YjNkdVlXMWxjeTV3Y21sdWRBQUVBQWtBQUFBS2NtOTNjeTUwYjNSaGJBQUVBQWtBQUFBS1kyOXNjeTUwYjNSaGJBQUFBUDRBQUFEKyJ9 -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[".metric"],"name":[1],"type":["chr"],"align":["left"]},{"label":[".estimator"],"name":[2],"type":["chr"],"align":["left"]},{"label":[".estimate"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"roc_auc","2":"binary","3":"0.6278057"}],"options":{"columns":{"min":{},"max":[10],"total":[3]},"rows":{"min":[10],"max":[10],"total":[1]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuemF1X3Zpbl9wcmVkICU+JSAgICAgICAgICAgICAgICAgICAjIHRlc3Qgc2V0IHByZWRpY3Rpb25zXG4gIGFjY3VyYWN5KHRydXRoID0gYWJ4eW4sIC5wcmVkX2NsYXNzKVxuYGBgIn0= -->
+<pre class="r"><code>zau_vin_pred %&gt;%                   # test set predictions
+  accuracy(truth = abxyn, .pred_class)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MSwibmNvbCI6Mywic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyIxIMOXIDMiXX19LCJyZGYiOiJVa1JZTXdwWUNnQUFBQU1BQkFJQUFBTUZBQUFBQUFWVlZFWXRPQUFBQkFJQUFBQUJBQVFBQ1FBQUFBRjRBQUFERXdBQUFBTUFBQUFRQUFBQUFRQUVBQWtBQUFBSVlXTmpkWEpoWTNrQUFBQVFBQUFBQVFBRUFBa0FBQUFHWW1sdVlYSjVBQUFBRGdBQUFBRS93ZUx2T3orNGRBQUFCQUlBQUFBQkFBUUFDUUFBQUFWdVlXMWxjd0FBQUJBQUFBQURBQVFBQ1FBQUFBY3ViV1YwY21sakFBUUFDUUFBQUFvdVpYTjBhVzFoZEc5eUFBUUFDUUFBQUFrdVpYTjBhVzFoZEdVQUFBUUNBQUFBQVFBRUFBa0FBQUFKY205M0xtNWhiV1Z6QUFBQURRQUFBQUtBQUFBQS8vLy8vd0FBQkFJQUFBQUJBQVFBQ1FBQUFBVmpiR0Z6Y3dBQUFCQUFBQUFCQUFRQUNRQUFBQXBrWVhSaExtWnlZVzFsQUFBQS9nQUFCQUlBQUFBQkFBUUFDUUFBQUFkdmNIUnBiMjV6QUFBQ0V3QUFBQVVBQUFBUUFBQUFBUUFFQUFrQUFBQUJjZ0FBQUJBQUFBQUJBQVFBQ1FBQUFCQjFibTVoYldWa0xXTm9kVzVyTFRFNUFBQUFDZ0FBQUFFQUFBQUFBQUFBRFFBQUFBRUFBQUFCQUFBQURRQUFBQUVBQUFBREFBQUVBZ0FBQXY4QUFBQVFBQUFBQlFBRUFBa0FBQUFHWlc1bmFXNWxBQVFBQ1FBQUFBVnNZV0psYkFBRUFBa0FBQUFPY205M2JtRnRaWE11Y0hKcGJuUUFCQUFKQUFBQUNuSnZkM011ZEc5MFlXd0FCQUFKQUFBQUNtTnZiSE11ZEc5MFlXd0FBQUQrQUFBQS9nPT0ifQ== -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[".metric"],"name":[1],"type":["chr"],"align":["left"]},{"label":[".estimator"],"name":[2],"type":["chr"],"align":["left"]},{"label":[".estimate"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"accuracy","2":"binary","3":"0.139738"}],"options":{"columns":{"min":{},"max":[10],"total":[3]},"rows":{"min":[10],"max":[10],"total":[1]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG56YXVfemF1X3ByZWQgPC0gXG4gIHByZWRpY3QoemF1X2ZpdCwgemF1c3ViKSAlPiUgXG4gIGJpbmRfY29scyhwcmVkaWN0KHphdV9maXQsIHphdXN1YiwgdHlwZSA9IFwicHJvYlwiKSkgJT4lIFxuICBiaW5kX2NvbHMoemF1c3ViICU+JSBzZWxlY3QoYWJ4eW4pKVxuemF1X3phdV9wcmVkICU+JSAgICAgICAgICAgICAgICAgICAjIHRlc3Qgc2V0IHByZWRpY3Rpb25zXG4gICAgcm9jX2F1Yyh0cnV0aCA9IGFieHluLCBlc3RpbWF0ZT0ucHJlZF9hbnRpYmlvdGljcylcbmBgYCJ9 -->
+<pre class="r"><code>
+zau_zau_pred &lt;- 
+  predict(zau_fit, zausub) %&gt;% 
+  bind_cols(predict(zau_fit, zausub, type = &quot;prob&quot;)) %&gt;% 
+  bind_cols(zausub %&gt;% select(abxyn))
+zau_zau_pred %&gt;%                   # test set predictions
+    roc_auc(truth = abxyn, estimate=.pred_antibiotics)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MSwibmNvbCI6Mywic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyIxIMOXIDMiXX19LCJyZGYiOiJVa1JZTXdwWUNnQUFBQU1BQkFJQUFBTUZBQUFBQUFWVlZFWXRPQUFBQkFJQUFBQUJBQVFBQ1FBQUFBRjRBQUFERXdBQUFBTUFBQUFRQUFBQUFRQUVBQWtBQUFBSGNtOWpYMkYxWXdBQUFCQUFBQUFCQUFRQUNRQUFBQVppYVc1aGNua0FBQUFPQUFBQUFUL3dBQUFBQUFBQUFBQUVBZ0FBQUFFQUJBQUpBQUFBQlc1aGJXVnpBQUFBRUFBQUFBTUFCQUFKQUFBQUJ5NXRaWFJ5YVdNQUJBQUpBQUFBQ2k1bGMzUnBiV0YwYjNJQUJBQUpBQUFBQ1M1bGMzUnBiV0YwWlFBQUJBSUFBQUFCQUFRQUNRQUFBQWx5YjNjdWJtRnRaWE1BQUFBTkFBQUFBb0FBQUFELy8vLy9BQUFFQWdBQUFBRUFCQUFKQUFBQUJXTnNZWE56QUFBQUVBQUFBQUVBQkFBSkFBQUFDbVJoZEdFdVpuSmhiV1VBQUFEK0FBQUVBZ0FBQUFFQUJBQUpBQUFBQjI5d2RHbHZibk1BQUFJVEFBQUFCUUFBQUJBQUFBQUJBQVFBQ1FBQUFBRnlBQUFBRUFBQUFBRUFCQUFKQUFBQUVIVnVibUZ0WldRdFkyaDFibXN0TVRrQUFBQUtBQUFBQVFBQUFBQUFBQUFOQUFBQUFRQUFBQUVBQUFBTkFBQUFBUUFBQUFNQUFBUUNBQUFDL3dBQUFCQUFBQUFGQUFRQUNRQUFBQVpsYm1kcGJtVUFCQUFKQUFBQUJXeGhZbVZzQUFRQUNRQUFBQTV5YjNkdVlXMWxjeTV3Y21sdWRBQUVBQWtBQUFBS2NtOTNjeTUwYjNSaGJBQUVBQWtBQUFBS1kyOXNjeTUwYjNSaGJBQUFBUDRBQUFEKyJ9 -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[".metric"],"name":[1],"type":["chr"],"align":["left"]},{"label":[".estimator"],"name":[2],"type":["chr"],"align":["left"]},{"label":[".estimate"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"roc_auc","2":"binary","3":"1"}],"options":{"columns":{"min":{},"max":[10],"total":[3]},"rows":{"min":[10],"max":[10],"total":[1]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuemF1X3phdV9wcmVkICU+JSAgICAgICAgICAgICAgICAgICAjIHRlc3Qgc2V0IHByZWRpY3Rpb25zXG4gIGFjY3VyYWN5KHRydXRoID0gYWJ4eW4sIC5wcmVkX2NsYXNzKVxuYGBgIn0= -->
+<pre class="r"><code>zau_zau_pred %&gt;%                   # test set predictions
+  accuracy(truth = abxyn, .pred_class)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MSwibmNvbCI6Mywic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyIxIMOXIDMiXX19LCJyZGYiOiJVa1JZTXdwWUNnQUFBQU1BQkFJQUFBTUZBQUFBQUFWVlZFWXRPQUFBQkFJQUFBQUJBQVFBQ1FBQUFBRjRBQUFERXdBQUFBTUFBQUFRQUFBQUFRQUVBQWtBQUFBSVlXTmpkWEpoWTNrQUFBQVFBQUFBQVFBRUFBa0FBQUFHWW1sdVlYSjVBQUFBRGdBQUFBRS83K3J3M1I3dU93QUFCQUlBQUFBQkFBUUFDUUFBQUFWdVlXMWxjd0FBQUJBQUFBQURBQVFBQ1FBQUFBY3ViV1YwY21sakFBUUFDUUFBQUFvdVpYTjBhVzFoZEc5eUFBUUFDUUFBQUFrdVpYTjBhVzFoZEdVQUFBUUNBQUFBQVFBRUFBa0FBQUFKY205M0xtNWhiV1Z6QUFBQURRQUFBQUtBQUFBQS8vLy8vd0FBQkFJQUFBQUJBQVFBQ1FBQUFBVmpiR0Z6Y3dBQUFCQUFBQUFCQUFRQUNRQUFBQXBrWVhSaExtWnlZVzFsQUFBQS9nQUFCQUlBQUFBQkFBUUFDUUFBQUFkdmNIUnBiMjV6QUFBQ0V3QUFBQVVBQUFBUUFBQUFBUUFFQUFrQUFBQUJjZ0FBQUJBQUFBQUJBQVFBQ1FBQUFCQjFibTVoYldWa0xXTm9kVzVyTFRFNUFBQUFDZ0FBQUFFQUFBQUFBQUFBRFFBQUFBRUFBQUFCQUFBQURRQUFBQUVBQUFBREFBQUVBZ0FBQXY4QUFBQVFBQUFBQlFBRUFBa0FBQUFHWlc1bmFXNWxBQVFBQ1FBQUFBVnNZV0psYkFBRUFBa0FBQUFPY205M2JtRnRaWE11Y0hKcGJuUUFCQUFKQUFBQUNuSnZkM011ZEc5MFlXd0FCQUFKQUFBQUNtTnZiSE11ZEc5MFlXd0FBQUQrQUFBQS9nPT0ifQ== -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[".metric"],"name":[1],"type":["chr"],"align":["left"]},{"label":[".estimator"],"name":[2],"type":["chr"],"align":["left"]},{"label":[".estimate"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"accuracy","2":"binary","3":"0.9974293"}],"options":{"columns":{"min":{},"max":[10],"total":[3]},"rows":{"min":[10],"max":[10],"total":[1]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<pre><code>
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5jYmluZCh0cmFpbnJheXRlc3RyYXk9cmF5X3JheV9wcmVkWzJdLCB0cmFpbnZpbnRlc3RyYXk9dmluX3JheV9wcmVkWzJdKVxuXG5jb3IocmF5X3JheV9wcmVkWzJdLCB2aW5fcmF5X3ByZWRbMl0pXG5jb3IocmF5X3JheV9wcmVkWzJdLCB6YXVfcmF5X3ByZWRbMl0pXG5jb3IodmluX3Zpbl9wcmVkWzJdLCB2aW5fcmF5X3ByZWRbMl0pXG5jb3IoemF1X3phdV9wcmVkWzJdLCB2aW5femF1X3ByZWRbMl0pXG5jb3IoemF1X3phdV9wcmVkWzJdLCB6YXVfcmF5X3ByZWRbMl0pXG5jb3IoemF1X3phdV9wcmVkWzJdLCB2aW5femF1X3ByZWRbMl0pXG5cbmBgYCJ9 --&gt;
+
+```r
+
+cbind(trainraytestray=ray_ray_pred[2], trainvintestray=vin_ray_pred[2])
+
+cor(ray_ray_pred[2], vin_ray_pred[2])
+cor(ray_ray_pred[2], zau_ray_pred[2])
+cor(vin_vin_pred[2], vin_ray_pred[2])
+cor(zau_zau_pred[2], vin_zau_pred[2])
+cor(zau_zau_pred[2], zau_ray_pred[2])
+cor(zau_zau_pred[2], vin_zau_pred[2])
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="vincent" class="section level2">
+<h2>Vincent</h2>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5zcGxpdCA8LSBpbml0aWFsX3NwbGl0KHZpbnN1YilcbnRyYWluIDwtIHRyYWluaW5nKHNwbGl0KVxudGVzdCA8LSB0ZXN0aW5nKHNwbGl0KVxuXG5yZl9tb2QgPC0gXG4gIHJhbmRfZm9yZXN0KHRyZWVzID0gMTAwMCkgJT4lIFxuICBzZXRfZW5naW5lKFwicmFuZ2VyXCIpICU+JSBcbiAgc2V0X21vZGUoXCJjbGFzc2lmaWNhdGlvblwiKVxuXG5yZl9maXQgPC0gcmZfbW9kICU+JSBcbiAgZml0KGFieHluIH4gLiwgZGF0YT10cmFpbilcblxucmZfdGVzdGluZ19wcmVkIDwtIFxuICBwcmVkaWN0KHJmX2ZpdCwgdGVzdCkgJT4lIFxuICBiaW5kX2NvbHMocHJlZGljdChyZl9maXQsIHRlc3QsIHR5cGUgPSBcInByb2JcIikpICU+JSBcbiAgYmluZF9jb2xzKHRlc3QgJT4lIHNlbGVjdChhYnh5bikpXG5yZl90ZXN0aW5nX3ByZWQgJT4lICAgICAgICAgICAgICAgICAgICMgdGVzdCBzZXQgcHJlZGljdGlvbnNcbiAgICByb2NfYXVjKHRydXRoID0gYWJ4eW4sIGVzdGltYXRlPS5wcmVkX2FudGliaW90aWNzKVxucmZfdGVzdGluZ19wcmVkICU+JSAgICAgICAgICAgICAgICAgICAjIHRlc3Qgc2V0IHByZWRpY3Rpb25zXG4gIGFjY3VyYWN5KHRydXRoID0gYWJ4eW4sIC5wcmVkX2NsYXNzKVxuYGBgIn0= -->
+<pre class="r"><code>
+split &lt;- initial_split(vinsub)
+train &lt;- training(split)
+test &lt;- testing(split)
 
 rf_mod &lt;- 
-  rand_forest(trees = 500) %&gt;% 
+  rand_forest(trees = 1000) %&gt;% 
   set_engine(&quot;ranger&quot;) %&gt;% 
   set_mode(&quot;classification&quot;)
 
 rf_fit &lt;- rf_mod %&gt;% 
-  fit(TreatmentGroup ~ ., data=Zauratrain)
+  fit(abxyn ~ ., data=train)
 
 rf_testing_pred &lt;- 
-  predict(rf_fit, Zauratest) %&gt;% 
-  bind_cols(predict(rf_fit, Zauratest, type = &quot;prob&quot;)) %&gt;% 
-  bind_cols(Zauratest %&gt;% select(TreatmentGroup))
-#rf_testing_pred %&gt;%                   # test set predictions
-#    roc_auc(truth = study_condition, estimate=.pred_amoxicillin)
+  predict(rf_fit, test) %&gt;% 
+  bind_cols(predict(rf_fit, test, type = &quot;prob&quot;)) %&gt;% 
+  bind_cols(test %&gt;% select(abxyn))
 rf_testing_pred %&gt;%                   # test set predictions
-  accuracy(truth = TreatmentGroup, .pred_class)</code></pre>
+    roc_auc(truth = abxyn, estimate=.pred_antibiotics)
+rf_testing_pred %&gt;%                   # test set predictions
+  accuracy(truth = abxyn, .pred_class)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MSwibmNvbCI6Mywic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyIxIMOXIDMiXX19LCJyZGYiOiJVa1JZTXdwWUNnQUFBQU1BQkFJQUFBTUZBQUFBQUFWVlZFWXRPQUFBQkFJQUFBQUJBQVFBQ1FBQUFBRjRBQUFERXdBQUFBTUFBQUFRQUFBQUFRQUVBQWtBQUFBSVlXTmpkWEpoWTNrQUFBQVFBQUFBQVFBRUFBa0FBQUFLYlhWc2RHbGpiR0Z6Y3dBQUFBNEFBQUFCUCtGT1hncHk4RlFBQUFRQ0FBQUFBUUFFQUFrQUFBQUZibUZ0WlhNQUFBQVFBQUFBQXdBRUFBa0FBQUFITG0xbGRISnBZd0FFQUFrQUFBQUtMbVZ6ZEdsdFlYUnZjZ0FFQUFrQUFBQUpMbVZ6ZEdsdFlYUmxBQUFFQWdBQUFBRUFCQUFKQUFBQUNYSnZkeTV1WVcxbGN3QUFBQTBBQUFBQ2dBQUFBUC8vLy84QUFBUUNBQUFBQVFBRUFBa0FBQUFGWTJ4aGMzTUFBQUFRQUFBQUFRQUVBQWtBQUFBS1pHRjBZUzVtY21GdFpRQUFBUDRBQUFRQ0FBQUFBUUFFQUFrQUFBQUhiM0IwYVc5dWN3QUFBaE1BQUFBRkFBQUFFQUFBQUFFQUJBQUpBQUFBQVhJQUFBQVFBQUFBQVFBRUFBa0FBQUFRZFc1dVlXMWxaQzFqYUhWdWF5MHpNZ0FBQUFvQUFBQUJBQUFBQUFBQUFBMEFBQUFCQUFBQUFRQUFBQTBBQUFBQkFBQUFBd0FBQkFJQUFBTC9BQUFBRUFBQUFBVUFCQUFKQUFBQUJtVnVaMmx1WlFBRUFBa0FBQUFGYkdGaVpXd0FCQUFKQUFBQURuSnZkMjVoYldWekxuQnlhVzUwQUFRQUNRQUFBQXB5YjNkekxuUnZkR0ZzQUFRQUNRQUFBQXBqYjJ4ekxuUnZkR0ZzQUFBQS9nQUFBUDQ9In0= -->
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[".metric"],"name":[1],"type":["chr"],"align":["left"]},{"label":[".estimator"],"name":[2],"type":["chr"],"align":["left"]},{"label":[".estimate"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"accuracy","2":"multiclass","3":"0.5408163"}],"options":{"columns":{"min":{},"max":[10],"total":[3]},"rows":{"min":[10],"max":[10],"total":[1]},"pages":{}}}
-  </script>
-</div>
-<!-- rnb-frame-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
+</div>
+<div id="zaura" class="section level2">
+<h2>Zaura</h2>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZm9sZHMgPC0gdmZvbGRfY3YoWmF1cmF0cmFpbiwgdj0gNiwgc3RyYXRhPVRyZWF0bWVudEdyb3VwLCByZXBlYXRzPTIpXG5yZl93ZiA8LSBcbiAgd29ya2Zsb3coKSAlPiVcbiAgYWRkX21vZGVsKHJmX21vZCkgJT4lXG4gIGFkZF9mb3JtdWxhKFRyZWF0bWVudEdyb3VwIH4gLilcbnJmX2ZpdF9ycyA8LSBcbiAgcmZfd2YgJT4lIFxuICBmaXRfcmVzYW1wbGVzKGZvbGRzKVxuY29sbGVjdF9tZXRyaWNzKHJmX2ZpdF9ycylcbmBgYCJ9 -->
-<pre class="r"><code>folds &lt;- vfold_cv(Zauratrain, v= 6, strata=TreatmentGroup, repeats=2)
-rf_wf &lt;- 
-  workflow() %&gt;%
-  add_model(rf_mod) %&gt;%
-  add_formula(TreatmentGroup ~ .)
-rf_fit_rs &lt;- 
-  rf_wf %&gt;% 
-  fit_resamples(folds)
-collect_metrics(rf_fit_rs)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5zcGxpdCA8LSBpbml0aWFsX3NwbGl0KHphdXN1YilcbnRyYWluIDwtIHRyYWluaW5nKHNwbGl0KVxudGVzdCA8LSB0ZXN0aW5nKHNwbGl0KVxuXG5yZl9tb2QgPC0gXG4gIHJhbmRfZm9yZXN0KHRyZWVzID0gMTAwMCkgJT4lIFxuICBzZXRfZW5naW5lKFwicmFuZ2VyXCIpICU+JSBcbiAgc2V0X21vZGUoXCJjbGFzc2lmaWNhdGlvblwiKVxuXG5yZl9maXQgPC0gcmZfbW9kICU+JSBcbiAgZml0KGFieHluIH4gLiwgZGF0YT10cmFpbilcblxucmZfdGVzdGluZ19wcmVkIDwtIFxuICBwcmVkaWN0KHJmX2ZpdCwgdGVzdCkgJT4lIFxuICBiaW5kX2NvbHMocHJlZGljdChyZl9maXQsIHRlc3QsIHR5cGUgPSBcInByb2JcIikpICU+JSBcbiAgYmluZF9jb2xzKHRlc3QgJT4lIHNlbGVjdChhYnh5bikpXG5yZl90ZXN0aW5nX3ByZWQgJT4lICAgICAgICAgICAgICAgICAgICMgdGVzdCBzZXQgcHJlZGljdGlvbnNcbiAgICByb2NfYXVjKHRydXRoID0gYWJ4eW4sIGVzdGltYXRlPS5wcmVkX2FudGliaW90aWNzKVxucmZfdGVzdGluZ19wcmVkICU+JSAgICAgICAgICAgICAgICAgICAjIHRlc3Qgc2V0IHByZWRpY3Rpb25zXG4gIGFjY3VyYWN5KHRydXRoID0gYWJ4eW4sIC5wcmVkX2NsYXNzKVxuYGBgIn0= -->
+<pre class="r"><code>
+split &lt;- initial_split(zausub)
+train &lt;- training(split)
+test &lt;- testing(split)
+
+rf_mod &lt;- 
+  rand_forest(trees = 1000) %&gt;% 
+  set_engine(&quot;ranger&quot;) %&gt;% 
+  set_mode(&quot;classification&quot;)
+
+rf_fit &lt;- rf_mod %&gt;% 
+  fit(abxyn ~ ., data=train)
+
+rf_testing_pred &lt;- 
+  predict(rf_fit, test) %&gt;% 
+  bind_cols(predict(rf_fit, test, type = &quot;prob&quot;)) %&gt;% 
+  bind_cols(test %&gt;% select(abxyn))
+rf_testing_pred %&gt;%                   # test set predictions
+    roc_auc(truth = abxyn, estimate=.pred_antibiotics)
+rf_testing_pred %&gt;%                   # test set predictions
+  accuracy(truth = abxyn, .pred_class)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MiwibmNvbCI6Niwic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyIyIMOXIDYiXX19LCJyZGYiOiJVa1JZTXdwWUNnQUFBQU1BQkFJQUFBTUZBQUFBQUFWVlZFWXRPQUFBQkFJQUFBQUJBQVFBQ1FBQUFBRjRBQUFERXdBQUFBWUFBQUFRQUFBQUFnQUVBQWtBQUFBSVlXTmpkWEpoWTNrQUJBQUpBQUFBQjNKdlkxOWhkV01BQUFBUUFBQUFBZ0FFQUFrQUFBQUtiWFZzZEdsamJHRnpjd0FFQUFrQUFBQUphR0Z1WkY5MGFXeHNBQUFBRGdBQUFBSS8zandiS0pCMExUL3B3L0gxVUltUUFBQUFEUUFBQUFJQUFBQU1BQUFBREFBQUFBNEFBQUFDUDRYQ256WkNxRkUvaENFREdHRnVZd0FBQUJBQUFBQUNBQVFBQ1FBQUFCUlFjbVZ3Y205alpYTnpiM0l4WDAxdlpHVnNNUUFFQUFrQUFBQVVVSEpsY0hKdlkyVnpjMjl5TVY5TmIyUmxiREVBQUFRQ0FBQUFBUUFFQUFrQUFBQUZibUZ0WlhNQUFBQVFBQUFBQmdBRUFBa0FBQUFITG0xbGRISnBZd0FFQUFrQUFBQUtMbVZ6ZEdsdFlYUnZjZ0FFQUFrQUFBQUViV1ZoYmdBRUFBa0FBQUFCYmdBRUFBa0FBQUFIYzNSa1gyVnljZ0FFQUFrQUFBQUhMbU52Ym1acFp3QUFCQUlBQUFBQkFBUUFDUUFBQUFseWIzY3VibUZ0WlhNQUFBQU5BQUFBQW9BQUFBRC8vLy8rQUFBRUFnQUFBQUVBQkFBSkFBQUFCV05zWVhOekFBQUFFQUFBQUFFQUJBQUpBQUFBQ21SaGRHRXVabkpoYldVQUFBRCtBQUFFQWdBQUFBRUFCQUFKQUFBQUIyOXdkR2x2Ym5NQUFBSVRBQUFBQlFBQUFCQUFBQUFCQUFRQUNRQUFBQUZ5QUFBQUVBQUFBQUVBQkFBSkFBQUFEM1Z1Ym1GdFpXUXRZMmgxYm1zdE1nQUFBQW9BQUFBQkFBQUFBQUFBQUEwQUFBQUJBQUFBQWdBQUFBMEFBQUFCQUFBQUJnQUFCQUlBQUFML0FBQUFFQUFBQUFVQUJBQUpBQUFBQm1WdVoybHVaUUFFQUFrQUFBQUZiR0ZpWld3QUJBQUpBQUFBRG5KdmQyNWhiV1Z6TG5CeWFXNTBBQVFBQ1FBQUFBcHliM2R6TG5SdmRHRnNBQVFBQ1FBQUFBcGpiMnh6TG5SdmRHRnNBQUFBL2dBQUFQND0ifQ== -->
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[".metric"],"name":[1],"type":["chr"],"align":["left"]},{"label":[".estimator"],"name":[2],"type":["chr"],"align":["left"]},{"label":["mean"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["n"],"name":[4],"type":["int"],"align":["right"]},{"label":["std_err"],"name":[5],"type":["dbl"],"align":["right"]},{"label":[".config"],"name":[6],"type":["chr"],"align":["left"]}],"data":[{"1":"accuracy","2":"multiclass","3":"0.4724186","4":"12","5":"0.010625118","6":"Preprocessor1_Model1"},{"1":"roc_auc","2":"hand_till","3":"0.8051691","4":"12","5":"0.009828591","6":"Preprocessor1_Model1"}],"options":{"columns":{"min":{},"max":[10],"total":[6]},"rows":{"min":[10],"max":[10],"total":[2]},"pages":{}}}
-  </script>
-</div>
-<!-- rnb-frame-end -->
 <!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
+</div>
 </div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiWmF1cmEgVGlkeSBNb2RlbHMiCm91dHB1dDogaHRtbF9ub3RlYm9vawotLS0KCiMgTG9hZCByZXF1aXJlZCBwYWNrYWdlcwoKU0lBTUNBVCBpcyB1c2VkIGZvciBhbmFseXNpcwoKYGBge3J9CmxpYnJhcnkoY3VyYXRlZE1ldGFnZW5vbWljRGF0YSkKbGlicmFyeShkcGx5cikKbGlicmFyeShtaWEpCmxpYnJhcnkodGlkeW1vZGVscykKbGlicmFyeShzdHJpbmdyKQpsaWJyYXJ5KGdncGxvdDIpCmxpYnJhcnkoZG90d2hpc2tlcikKbGlicmFyeShiaW9icm9vbSkKbGlicmFyeShwaHlsb3NlcSkKYGBgCgpgYGB7cn0KcGh5bG9aYXVyYSA8LSBpbXBvcnRfYmlvbSgiLi4vZGF0YS9aYXVyYS90YXhhLmJpb20iKQp6YXVyYSA8LSBwaHlsb1phdXJhCiN0cmVlWmF1cmEgPC0gcmVhZF90cmVlKCIuLi9kYXRhL1phdXJhL3BoeWxvL3Jvb3RlZF90cmVlLm53ayIpCm1ldGFaYXVyYSA8LSByZWFkLmNzdigiLi4vZGF0YS9aYXVyYS96YXVyYSBtZXRhZGF0YS5jc3YiKQpyb3cubmFtZXMobWV0YVphdXJhKSA8LSBtZXRhWmF1cmEkTkNCSV9hY2Nlc3Npb24KI3BoeV90cmVlKHphdXJhKSA8LSB0cmVlWmF1cmEKc2FtcGxlX2RhdGEoemF1cmEpIDwtIG1ldGFaYXVyYQpgYGAKCgojIEdldCBOQ0JJIHRheG9uIGlkcwpgYGB7cn0KbGlicmFyeSh0YXhpemVkYikKZGJfZG93bmxvYWRfbmNiaSgpCm5jYmkgPC0gc3JjX25jYmkoKQpuY2JpCmBgYApgYGB7cn0KemF1cmFnZW51cyA8LSBzdWJzZXRfdGF4YSh6YXVyYSwgUmFuazYhPSJub25lIikKemF1cmFnIDwtIHRheF9nbG9tKHphdXJhZ2VudXMsICJSYW5rNiIpCnphdXJhcHJvcCA8LSB0cmFuc2Zvcm1fc2FtcGxlX2NvdW50cyh6YXVyYWcsIGZ1bmN0aW9uKHgpIHggLyBzdW0oeCkpCgojR2V0IGNvbHVtbiBmcm9tIHRheCB0YWJsZQp0YXhDb2wgPC0gdGF4X3RhYmxlKHphdXJhcHJvcClbLDZdCiNTZW5kIGNvbHVtbiBjZWxsIHRvIG5hbWUydGF4aWQKZmlyc3RpZCA8LSBmdW5jdGlvbih4KXsKICB5IDwtIG5hbWUydGF4aWQoeCwgb3V0X3R5cGUgPSAic3VtbWFyeSIpWzEsMl0KICByZXR1cm4oeSkKfQp0YXhMaXN0IDwtIGxhcHBseSh0YXhDb2wsIGZpcnN0aWQpCnRheE5DQkkgPC0gbWFwX2Rmcih0YXhMaXN0LCBiaW5kX3Jvd3MpCgpjb252ZXJ0Mm5jYmkgPC0gZnVuY3Rpb24ocGh5bG8pewogIHRheHRhYmxlIDwtIHRheF90YWJsZShwaHlsbykKICByYW5rcyA8LSBkaW0odGF4dGFibGUpWzJdCiAgdGF4YSA8LSBkaW0odGF4dGFibGUpWzFdCiAgbmNiaXMgPC0gZGF0YS5mcmFtZShudW09MTp0YXhhKQogIGZvciAoeCBpbiAxOjYpewogICAgdGF4Q29sIDwtIHRheHRhYmxlWyx4XQogICAgdGF4TGlzdCA8LSBsYXBwbHkodGF4Q29sLCBmaXJzdGlkKQogICAgdGF4TkNCSSA8LSBtYXBfZGZyKHRheExpc3QsIGJpbmRfcm93cykKICAgIG5jYmlzIDwtIGNiaW5kKG5jYmlzLCB0YXhOQ0JJKQogIH0KICByZXR1cm4obmNiaXMpCn0KCm5jYmlyYW5rcyA8LSBjb252ZXJ0Mm5jYmkoemF1cmFwcm9wKQoKcnZnZW5lcmEgPC0gcm93bmFtZXMob3R1X3RhYmxlKHBoeWxvcnYpKSAlPiUgc3RyaW5ncjo6c3RyX2V4dHJhY3QocGF0dGVybj0iXFxkezEsfSIpCm5jYmlyYW5rc1ssN10gJWluJSAgcnZnZW5lcmEgJT4lIHRhYmxlKCkKbmV3cm93bmFtZXMgPC0gZGF0YS5mcmFtZShuZXduYW1lPW5jYmlyYW5rc1ssN10sIHRheF90YWJsZSh6YXVyYXByb3ApKQoKbmV3cm93bmFtZXMgPC0gbmV3cm93bmFtZXMgJT4lIAogICAgbXV0YXRlKHJhbmtuYW1lID0gY29hbGVzY2UobmV3bmFtZSxSYW5rNikpCgojVGhlcmUncyBvbmUgZHVwbGljYXRlIHNvIGxldCdzIGp1c3QgY2hhbmdlIGl0IGZvciBub3cKbmV3cm93bmFtZXMkcmFua25hbWVbbmV3cm93bmFtZXMkUmFuazY9PSJDaHJpc3RlbnNlbmVsbGEiXSA8LSAiZHVwbGljYXRlIgoKdGF4YV9uYW1lcyh6YXVyYXByb3ApIDwtIG5ld3Jvd25hbWVzJHJhbmtuYW1lCnRheGFfbmFtZXMocGh5bG9ydikgPC0gcnZnZW5lcmEKI1VzZSBbMSwyXSByZXN1bHQgYW5kIHJldHVybiBpdAojTWFrZSBuZXcgdGF4IHRhYmxlIHdpdGggcmVzdWx0cwoKYGBgCgoKCiMgQ29udmVydCBPVFUgdGFibGUgdG8gcHJvcG9ydGlvbnMgYW5kIHRyaW0KYGBge3J9CiMgU2VsZWN0IG9ubHkgdGF4YSBvbiB0aGUgZ2VudXMgbGV2ZWwKCgp6YXVyYWdlbnVzIDwtIGZpbHRlcl90YXhhKHphdXJhLCB0YXhvbl9yYW5rcyA9PSAiUmFuazYiKQp6YXVyYUZpbHQ9IGZpbHRlcl90YXhhKHphdXJhLCBmdW5jdGlvbih4KSBtZWFuKHgpIDwuMDEsVFJVRSkKcm10YXhhID0gdGF4YV9uYW1lcyh6YXVyYUZpbHQpCmFsbHRheGEgPSB0YXhhX25hbWVzKHphdXJhKQoKbXlUYXhhID0gYWxsdGF4YVshYWxsdGF4YSAlaW4lIHJtdGF4YV0KCnphdXJhUHJ1bmVkIDwtIHBydW5lX3RheGEobXlUYXhhLHphdXJhKQoKCgoKYGBgCgojIFR1cm4gaXQgaW50byBhIFRTRSBhbmQgdGlkeSBpdApgYGB7cn0KWmF1cmF0c2UgPC0gbWFrZVRyZWVTdW1tYXJpemVkRXhwZXJpbWVudEZyb21QaHlsb3NlcSh6YXVyYVBydW5lZCkKWmF1cmF0aWR5IDwtIHRpZHkoWmF1cmF0c2UsIGFkZFBoZW5vID0gVFJVRSkKWmF1cmF3aWRlIDwtIHBpdm90X3dpZGVyKFphdXJhdGlkeSwgbmFtZXNfZnJvbSA9IGdlbmUsIHZhbHVlc19mcm9tID0gdmFsdWUpClphdXJhc3ViPC0gWmF1cmF3aWRlICU+JSBzZWxlY3QoYygiVHJlYXRtZW50R3JvdXAiLCBzdGFydHNfd2l0aCgic2VxIikpKQpaYXVyYXN1YiRUcmVhdG1lbnRHcm91cCA8LSBmYWN0b3IoWmF1cmFzdWIkVHJlYXRtZW50R3JvdXApCmBgYAoKCmBgYHtyfQojIFNlbGVjdCBvbmx5IHRoZSBtaWNyb2Jpb21lIHZhcnMKCnNldC5zZWVkKDczMjk4MSkKWmF1cmFzcGxpdCA8LSBpbml0aWFsX3NwbGl0KFphdXJhc3ViKQpaYXVyYXRyYWluIDwtIHRyYWluaW5nKFphdXJhc3BsaXQpClphdXJhdGVzdCA8LSB0ZXN0aW5nKFphdXJhc3BsaXQpCgpyZl9tb2QgPC0gCiAgcmFuZF9mb3Jlc3QodHJlZXMgPSA1MDApICU+JSAKICBzZXRfZW5naW5lKCJyYW5nZXIiKSAlPiUgCiAgc2V0X21vZGUoImNsYXNzaWZpY2F0aW9uIikKCnJmX2ZpdCA8LSByZl9tb2QgJT4lIAogIGZpdChUcmVhdG1lbnRHcm91cCB+IC4sIGRhdGE9WmF1cmF0cmFpbikKCnJmX3Rlc3RpbmdfcHJlZCA8LSAKICBwcmVkaWN0KHJmX2ZpdCwgWmF1cmF0ZXN0KSAlPiUgCiAgYmluZF9jb2xzKHByZWRpY3QocmZfZml0LCBaYXVyYXRlc3QsIHR5cGUgPSAicHJvYiIpKSAlPiUgCiAgYmluZF9jb2xzKFphdXJhdGVzdCAlPiUgc2VsZWN0KFRyZWF0bWVudEdyb3VwKSkKI3JmX3Rlc3RpbmdfcHJlZCAlPiUgICAgICAgICAgICAgICAgICAgIyB0ZXN0IHNldCBwcmVkaWN0aW9ucwojICAgIHJvY19hdWModHJ1dGggPSBzdHVkeV9jb25kaXRpb24sIGVzdGltYXRlPS5wcmVkX2Ftb3hpY2lsbGluKQpyZl90ZXN0aW5nX3ByZWQgJT4lICAgICAgICAgICAgICAgICAgICMgdGVzdCBzZXQgcHJlZGljdGlvbnMKICBhY2N1cmFjeSh0cnV0aCA9IFRyZWF0bWVudEdyb3VwLCAucHJlZF9jbGFzcykKYGBgCgpgYGB7cn0KZm9sZHMgPC0gdmZvbGRfY3YoWmF1cmF0cmFpbiwgdj0gNiwgc3RyYXRhPVRyZWF0bWVudEdyb3VwLCByZXBlYXRzPTIpCnJmX3dmIDwtIAogIHdvcmtmbG93KCkgJT4lCiAgYWRkX21vZGVsKHJmX21vZCkgJT4lCiAgYWRkX2Zvcm11bGEoVHJlYXRtZW50R3JvdXAgfiAuKQpyZl9maXRfcnMgPC0gCiAgcmZfd2YgJT4lIAogIGZpdF9yZXNhbXBsZXMoZm9sZHMpCmNvbGxlY3RfbWV0cmljcyhyZl9maXRfcnMpCmBgYAoKCg==</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiUmF5bW9uZCArIFZpbmNlbnQgKyBaYXVyYSIKb3V0cHV0OiBodG1sX25vdGVib29rCi0tLQoKIyBMb2FkIHJlcXVpcmVkIHBhY2thZ2VzCgpTSUFNQ0FUIGlzIHVzZWQgZm9yIGFuYWx5c2lzCgpgYGB7cn0KbGlicmFyeShjdXJhdGVkTWV0YWdlbm9taWNEYXRhKQpsaWJyYXJ5KGRwbHlyKQpsaWJyYXJ5KG1pYSkKbGlicmFyeSh0aWR5bW9kZWxzKQpsaWJyYXJ5KHN0cmluZ3IpCmxpYnJhcnkoZ2dwbG90MikKbGlicmFyeShkb3R3aGlza2VyKQpsaWJyYXJ5KGJpb2Jyb29tKQpgYGAKCiMgTG9hZCBaYXVyYSBkYXRhc2V0CmBgYHtyfQpwaHlsb1phdXJhIDwtIGltcG9ydF9iaW9tKCIuLi9kYXRhL1phdXJhL3RheGEuYmlvbSIpCnphdXJhIDwtIHBoeWxvWmF1cmEKCm1ldGFaYXVyYSA8LSByZWFkLmNzdigiLi4vZGF0YS9aYXVyYS96YXVyYSBtZXRhZGF0YS5jc3YiKQpyb3cubmFtZXMobWV0YVphdXJhKSA8LSBtZXRhWmF1cmEkTkNCSV9hY2Nlc3Npb24KCnNhbXBsZV9kYXRhKHphdXJhKSA8LSBtZXRhWmF1cmEKYGBgCgojIyBHZXQgTkNCSSBuYW1lcyB0byBtZXJnZSB3aXRoIFphdXJhCgojIyMgR2V0IE5DQkkgdGF4b24gaWRzCmBgYHtyfQpsaWJyYXJ5KHRheGl6ZWRiKQpkYl9kb3dubG9hZF9uY2JpKCkKbmNiaSA8LSBzcmNfbmNiaSgpCm5jYmkKYGBgCgoKCiMgRmlsdGVyIGNNRCBtZXRhZGF0YSB0YWJsZSBmb3IgVmluY2VudCBhbmQgUmF5bW9uZApgYGB7cn0KbWV0YSA8LSBjdXJhdGVkTWV0YWdlbm9taWNEYXRhOjpzYW1wbGVNZXRhZGF0YQptZXRhJHN0dWR5X25hbWUgJT4lIHRhYmxlKCkKCnN1Ym1ldGEgPC0gbWV0YSAlPiUgZmlsdGVyKHN0dWR5X25hbWU9PSJWaW5jZW50Q18yMDE2IiB8IHN0dWR5X25hbWU9PSJSYXltb25kRl8yMDE2IikKc3VibWV0YSRzdHVkeV9uYW1lICU+JSB0YWJsZSgpCmBgYAoKIyBEb3dubG9hZCBkYXRhIGZyb20gY01EIGZvciBtYXRjaGluZyBtZXRhZGF0YQpUYWJsZSBzaG91bGQgbWF0Y2ggdGhlIG1ldGFkYXRhIHRhYmxlCmBgYHtyfQpyYXl2aW5jZSA8LSByZXR1cm5TYW1wbGVzKHN1Ym1ldGEsICJyZWxhdGl2ZV9hYnVuZGFuY2UiLCByb3duYW1lcyA9ICJOQ0JJIikKCmFzc2F5KHJheXZpbmNlKSA8LSBhc3NheShyYXl2aW5jZSkvMTAwCnJheXZpbmNlZ2VudXMgPC0gYWdnbG9tZXJhdGVCeVJhbmsocmF5dmluY2UsICJnZW51cyIpCnBoeWxvcnYgPC0gbWFrZVBoeWxvc2VxRnJvbVRyZWVTdW1tYXJpemVkRXhwZXJpbWVudChyYXl2aW5jZWdlbnVzLCBhYnVuZF92YWx1ZXMgPSAicmVsYXRpdmVfYWJ1bmRhbmNlIikKYGBgCgoKIyMgTG9va3VwIFphdXJhIGFuZCBtZXJnZQpgYGB7cn0KemF1cmFnZW51cyA8LSBzdWJzZXRfdGF4YSh6YXVyYSwgUmFuazYhPSJub25lIikKemF1cmFnIDwtIHRheF9nbG9tKHphdXJhZ2VudXMsICJSYW5rNiIpCnphdXJhcHJvcCA8LSB0cmFuc2Zvcm1fc2FtcGxlX2NvdW50cyh6YXVyYWcsIGZ1bmN0aW9uKHgpIHggLyBzdW0oeCkpCgojR2V0IGNvbHVtbiBmcm9tIHRheCB0YWJsZQp0YXhDb2wgPC0gdGF4X3RhYmxlKHphdXJhcHJvcClbLDZdCiNTZW5kIGNvbHVtbiBjZWxsIHRvIG5hbWUydGF4aWQKZmlyc3RpZCA8LSBmdW5jdGlvbih4KXsKICB5IDwtIG5hbWUydGF4aWQoeCwgb3V0X3R5cGUgPSAic3VtbWFyeSIpWzEsMl0KICByZXR1cm4oeSkKfQp0YXhMaXN0IDwtIGxhcHBseSh0YXhDb2wsIGZpcnN0aWQpCnRheE5DQkkgPC0gbWFwX2Rmcih0YXhMaXN0LCBiaW5kX3Jvd3MpCgpjb252ZXJ0Mm5jYmkgPC0gZnVuY3Rpb24ocGh5bG8pewogIHRheHRhYmxlIDwtIHRheF90YWJsZShwaHlsbykKICByYW5rcyA8LSBkaW0odGF4dGFibGUpWzJdCiAgdGF4YSA8LSBkaW0odGF4dGFibGUpWzFdCiAgbmNiaXMgPC0gZGF0YS5mcmFtZShudW09MTp0YXhhKQogIGZvciAoeCBpbiAxOjYpewogICAgdGF4Q29sIDwtIHRheHRhYmxlWyx4XQogICAgdGF4TGlzdCA8LSBsYXBwbHkodGF4Q29sLCBmaXJzdGlkKQogICAgdGF4TkNCSSA8LSBtYXBfZGZyKHRheExpc3QsIGJpbmRfcm93cykKICAgIG5jYmlzIDwtIGNiaW5kKG5jYmlzLCB0YXhOQ0JJKQogIH0KICByZXR1cm4obmNiaXMpCn0KCm5jYmlyYW5rcyA8LSBjb252ZXJ0Mm5jYmkoemF1cmFwcm9wKQoKcnZnZW5lcmEgPC0gcm93bmFtZXMob3R1X3RhYmxlKHBoeWxvcnYpKSAlPiUgc3RyaW5ncjo6c3RyX2V4dHJhY3QocGF0dGVybj0iXFxkezEsfSIpCm5jYmlyYW5rc1ssN10gJWluJSAgcnZnZW5lcmEgJT4lIHRhYmxlKCkKbmV3cm93bmFtZXMgPC0gZGF0YS5mcmFtZShuZXduYW1lPW5jYmlyYW5rc1ssN10sIHRheF90YWJsZSh6YXVyYXByb3ApKQoKbmV3cm93bmFtZXMgPC0gbmV3cm93bmFtZXMgJT4lIAogICAgbXV0YXRlKHJhbmtuYW1lID0gY29hbGVzY2UobmV3bmFtZSxSYW5rNikpCgojVGhlcmUncyBvbmUgZHVwbGljYXRlIHNvIGxldCdzIGp1c3QgY2hhbmdlIGl0IGZvciBub3cKbmV3cm93bmFtZXMkcmFua25hbWVbbmV3cm93bmFtZXMkUmFuazY9PSJDaHJpc3RlbnNlbmVsbGEiXSA8LSAiZHVwbGljYXRlIgoKI1VzZSBbMSwyXSByZXN1bHQgYW5kIHJldHVybiBpdAojTWFrZSBuZXcgdGF4IHRhYmxlIHdpdGggcmVzdWx0cwp0YXhhX25hbWVzKHphdXJhcHJvcCkgPC0gbmV3cm93bmFtZXMkcmFua25hbWUKdGF4YV9uYW1lcyhwaHlsb3J2KSA8LSBydmdlbmVyYQoKYGBgCgojIFByb3BvcnRpb25zIGluIGNNRCBhcmUgcHJlc2VudGVkIGFzIHBlcmNlbnRhZ2VzLiBOZWVkIHRvIGJlIGRlY2ltYWxzLiBEaXZpZGUgYnkgMTAwLgpgYGB7cn0KcHJ2dGF4YSA8LSBtZXJnZV90YXhhKHBoeWxvcnYsIHphdXJhcHJvcCkKcnZ6IDwtIG1lcmdlX3BoeWxvc2VxKHBydnRheGEsIHphdXJhcHJvcCkKYGBgCgpIYXZlIHRvIHJlY29kZSBhbGwgdGhlIGFudGliaW90aWNzIHRvIG1hdGNoCmBgYHtyfQpzYW1wbGVfZGF0YShydnopJGFieCA8LSAibm9uZSIKc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRzdHVkeV9jb25kaXRpb249PSJhbW94Il0gPC0gInBlbmljaWxsaW5zIgpzYW1wbGVfZGF0YShydnopJGFieFtzYW1wbGVfZGF0YShydnopJHN0dWR5X2NvbmRpdGlvbj09ImNlcGhhbG9zcG9yaW5zIl0gPC0gImNlcGhhbG9zcG9yaW5zIgpzYW1wbGVfZGF0YShydnopJGFieFtzYW1wbGVfZGF0YShydnopJHN0dWR5X2NvbmRpdGlvbj09ImNpcHJvIl0gPC0gInF1aW5vbG9uZXMiCnNhbXBsZV9kYXRhKHJ2eikkYWJ4W3NhbXBsZV9kYXRhKHJ2eikkc3R1ZHlfY29uZGl0aW9uPT0iY2xpbmRhIl0gPC0gImxpbmNvc2FtaWRlcyIKc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRzdHVkeV9jb25kaXRpb249PSJjb250cm9sIl0gPC0gIm5vbmUiCnNhbXBsZV9kYXRhKHJ2eikkYWJ4W3NhbXBsZV9kYXRhKHJ2eikkc3R1ZHlfY29uZGl0aW9uPT0ibWlub2MiXSA8LSAidGV0cmFjeWNsaW5lcyIKc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRzdHVkeV9jb25kaXRpb249PSJtaW5vYywgbWlub2MiXSA8LSAidGV0cmFjeWNsaW5lcyIKc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRzdHVkeV9jb25kaXRpb249PSJwbGFjZWJvIl0gPC0gIm5vbmUiCgpzYW1wbGVfZGF0YShydnopJGFieFtzYW1wbGVfZGF0YShydnopJGFudGliaW90aWNzX2ZhbWlseT09ImFtaW5vZ2x5Y29zaWRlcztiZXRhX2xhY3RhbWFzZV9pbmhpYml0b3JzO2xheGF0aXZlcztwZW5pY2lsbGluICJdIDwtICJtdWx0aSIKc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRhbnRpYmlvdGljc19mYW1pbHk9PSJiZXRhX2xhY3RhbWFzZV9pbmhpYml0b3JzO2NhcmJhcGVuZW1zO2NlcGhhbG9zcG9yaW5zO2ZsdW9yb3F1aW5vbG9uZXM7cGVuaWNpbGxpbiAiXSA8LSAibXVsdGkiCnNhbXBsZV9kYXRhKHJ2eikkYWJ4W3NhbXBsZV9kYXRhKHJ2eikkYW50aWJpb3RpY3NfZmFtaWx5PT0iYmV0YV9sYWN0YW1hc2VfaW5oaWJpdG9ycztjYXJiYXBlbmVtcztjZXBoYWxvc3BvcmlucztwZW5pY2lsbGluIl0gPC0gIm11bHRpIgpzYW1wbGVfZGF0YShydnopJGFieFtzYW1wbGVfZGF0YShydnopJGFudGliaW90aWNzX2ZhbWlseT09ImJldGFfbGFjdGFtYXNlX2luaGliaXRvcnM7Y2FyYmFwZW5lbXM7Zmx1b3JvcXVpbm9sb25lcztwZW5pY2lsbGluIl0gPC0gIm11bHRpIgpzYW1wbGVfZGF0YShydnopJGFieFtzYW1wbGVfZGF0YShydnopJGFudGliaW90aWNzX2ZhbWlseT09ImJldGFfbGFjdGFtYXNlX2luaGliaXRvcnM7bWFjcm9saWRlcztwZW5pY2lsbGluIl0gPC0gIm11bHRpIgpzYW1wbGVfZGF0YShydnopJGFieFtzYW1wbGVfZGF0YShydnopJGFudGliaW90aWNzX2ZhbWlseT09ImJldGFfbGFjdGFtYXNlX2luaGliaXRvcnM7cGVuaWNpbGxpbiJdIDwtICJwZW5pY2lsbGlucyIKCnNhbXBsZV9kYXRhKHJ2eikkYWJ4W3NhbXBsZV9kYXRhKHJ2eikkYW50aWJpb3RpY3NfZmFtaWx5PT0iY2FyYmFwZW5lbXMiXSA8LSAiY2FyYmFwZW5lbXMiCnNhbXBsZV9kYXRhKHJ2eikkYWJ4W3NhbXBsZV9kYXRhKHJ2eikkYW50aWJpb3RpY3NfZmFtaWx5PT0iY2FyYmFwZW5lbXM7Zmx1b3JvcXVpbm9sb25lcyJdIDwtICJtdWx0aSIKc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRhbnRpYmlvdGljc19mYW1pbHk9PSJjYXJiYXBlbmVtcztmbHVvcm9xdWlub2xvbmVzO2xheGF0aXZlcyJdIDwtICJtdWx0aSIKc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRhbnRpYmlvdGljc19mYW1pbHk9PSJjYXJiYXBlbmVtcztsYXhhdGl2ZXMiXSA8LSAiY2FiYXBlbmVtcyIKc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRhbnRpYmlvdGljc19mYW1pbHk9PSJjZXBoYWxvc3BvcmlucyJdIDwtICJjZXBoYWxvc3BvcmlucyIKc2FtcGxlX2RhdGEocnZ6KSRhYnhbc2FtcGxlX2RhdGEocnZ6KSRhbnRpYmlvdGljc19mYW1pbHk9PSJmbHVvcm9xdWlub2xvbmVzIl0gPC0gImZsdW9yb3F1aW5vbG9uZXMiCnNhbXBsZV9kYXRhKHJ2eikkYWJ4W3NhbXBsZV9kYXRhKHJ2eikkYW50aWJpb3RpY3NfZmFtaWx5PT0ibWFjcm9saWRlcyJdIDwtICJtYWNyb2xpZGVzIgoKc2FtcGxlX2RhdGEocnZ6KSRhYnh5bltzYW1wbGVfZGF0YShydnopJGFieD09Im5vbmUiXTwtIm5vbmUiCnNhbXBsZV9kYXRhKHJ2eikkYWJ4eW5bc2FtcGxlX2RhdGEocnZ6KSRhYnghPSJub25lIl08LSJhbnRpYmlvdGljcyIKYGBgCgpgYGB7cn0KcnZ6dHNlIDwtIG1ha2VUcmVlU3VtbWFyaXplZEV4cGVyaW1lbnRGcm9tUGh5bG9zZXEocnZ6KQpydnp0aWR5IDwtIHRpZHkocnZ6dHNlLCBhZGRQaGVubyA9IFRSVUUpCnJ2endpZGUgPC0gcGl2b3Rfd2lkZXIocnZ6dGlkeSwgbmFtZXNfZnJvbSA9IGdlbmUsIHZhbHVlc19mcm9tID0gdmFsdWUpCmBgYAoKCkl0J3MgcmVhbGx5IGJhZC4gUHJvYmFibHkgbmVlZCB0byBkbyBzb21lIHJlc2FtcGxpbmcgYW5kIG1heWJlIG5vdCBhZ2dsb21lcmF0ZSB0byBjbGFzcwpgYGB7cn0KIyBTZWxlY3Qgb25seSB0aGUgbWljcm9iaW9tZSB2YXJzCgoKcnZ6c3ViIDwtIHJ2endpZGUgJT4lIHNlbGVjdChjKCJhYnh5biIsICJzdHVkeV9uYW1lIiwgImRheXNfZnJvbV9maXJzdF9jb2xsZWN0aW9uIiwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbWF0Y2hlcygiXFxkJCIpLCAtImdscF8xIiwgLSJjZDE2MyIsIC0iaWxfMSIsIC0gIlBGUzEyIiwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgLSJmZ2ZfMTkiLCAtImFudGlfUERfMSIsIC0iaGxhX2RyYjEyIiwgLSJobGFfZHFhMTIiLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAtImhsYV9kcWExMSIsIC0iaGxhX2RyYjExIikpCnJ2enN1YiRhYnh5biA8LSBmYWN0b3IocnZ6c3ViJGFieHluKQpzZXQuc2VlZCg3MzI5ODEpCnNwbGl0IDwtIGluaXRpYWxfc3BsaXQocnZ6c3ViKQp0cmFpbiA8LSB0cmFpbmluZyhzcGxpdCkKdGVzdCA8LSB0ZXN0aW5nKHNwbGl0KQoKcmZfbW9kIDwtIAogIHJhbmRfZm9yZXN0KHRyZWVzID0gMTAwMCkgJT4lIAogIHNldF9lbmdpbmUoInJhbmdlciIpICU+JSAKICBzZXRfbW9kZSgiY2xhc3NpZmljYXRpb24iKQoKcmZfZml0IDwtIHJmX21vZCAlPiUgCiAgZml0KGFieHluIH4gLiwgZGF0YT10cmFpbikKCnJmX3Rlc3RpbmdfcHJlZCA8LSAKICBwcmVkaWN0KHJmX2ZpdCwgdGVzdCkgJT4lIAogIGJpbmRfY29scyhwcmVkaWN0KHJmX2ZpdCwgdGVzdCwgdHlwZSA9ICJwcm9iIikpICU+JSAKICBiaW5kX2NvbHModGVzdCAlPiUgc2VsZWN0KGFieHluKSkKcmZfdGVzdGluZ19wcmVkICU+JSAgICAgICAgICAgICAgICAgICAjIHRlc3Qgc2V0IHByZWRpY3Rpb25zCiAgICByb2NfYXVjKHRydXRoID0gYWJ4eW4sIGVzdGltYXRlPS5wcmVkX2FudGliaW90aWNzKQpyZl90ZXN0aW5nX3ByZWQgJT4lICAgICAgICAgICAgICAgICAgICMgdGVzdCBzZXQgcHJlZGljdGlvbnMKICBhY2N1cmFjeSh0cnV0aCA9IGFieHluLCAucHJlZF9jbGFzcykKYGBgCgojIERpdmlkZSBkYXRhc2V0IGludG8gdGhyZWUgc2VwYXJhdGUgZGF0YXNldHMgYnkgbmFtZQpgYGB7cn0KcmF5c3ViIDwtIHJ2enN1YltydnpzdWIkc3R1ZHlfbmFtZT09IlJheW1vbmRGXzIwMTYiICYgcnZ6c3ViJGRheXNfZnJvbV9maXJzdF9jb2xsZWN0aW9uPjAsXQp2aW5zdWIgPC0gcnZ6c3ViW3J2enN1YiRzdHVkeV9uYW1lPT0iVmluY2VudENfMjAxNiIsXQp6YXVzdWIgPC0gcnZ6c3ViW3J2enN1YiRzdHVkeV9uYW1lPT0iWmF1cmFFXzIwMTUiLF0KYGBgCgojIEVuc2VtYmxlLXkgYW5hbHlzaXMKIyBGaXQgYSBwcmVkaWN0aW9uIG1vZGVsIG9uIGVhY2ggZGF0YXNldCB0aGVuIGFwcGx5IHRoYXQgbW9kZWwgdG8gdGhlIG90aGVyIHR3byBkYXRhc2V0cwojIyByYXltb25kCmBgYHtyfQpyYXlzdWIgPC0gcmF5c3ViICU+JSBzZWxlY3QoLSJzdHVkeV9uYW1lIikKcmF5c3ViIDwtIHJheXN1YiAlPiUgc2VsZWN0KC0iZGF5c19mcm9tX2ZpcnN0X2NvbGxlY3Rpb24iKQp2aW5zdWIgPC0gdmluc3ViICU+JSBzZWxlY3QoLSJzdHVkeV9uYW1lIikKemF1c3ViIDwtIHphdXN1YiAlPiUgc2VsZWN0KC0ic3R1ZHlfbmFtZSIpCnJheXN1YiRhYnh5biA8LSBmYWN0b3IocmF5c3ViJGFieHluKQoKCnJmX21vZCA8LSAKICByYW5kX2ZvcmVzdCh0cmVlcyA9IDEwMDApICU+JSAKICBzZXRfZW5naW5lKCJyYW5nZXIiKSAlPiUgCiAgc2V0X21vZGUoImNsYXNzaWZpY2F0aW9uIikKCnJheV9maXQgPC0gcmZfbW9kICU+JSAKICBmaXQoYWJ4eW4gfiAuLCBkYXRhPXJheXN1YikKCnJheV9yYXlfcHJlZCA8LSAKICBwcmVkaWN0KHJheV9maXQsIHJheXN1YikgJT4lIAogIGJpbmRfY29scyhwcmVkaWN0KHJheV9maXQsIHJheXN1YiwgdHlwZSA9ICJwcm9iIikpICU+JSAKICBiaW5kX2NvbHMocmF5c3ViICU+JSBzZWxlY3QoYWJ4eW4pKQpyYXlfcmF5X3ByZWQgJT4lICAgICAgICAgICAgICAgICAgICMgdGVzdCBzZXQgcHJlZGljdGlvbnMKICAgIHJvY19hdWModHJ1dGggPSBhYnh5biwgZXN0aW1hdGU9LnByZWRfYW50aWJpb3RpY3MpCnJheV9yYXlfcHJlZCAlPiUgICAgICAgICAgICAgICAgICAgIyB0ZXN0IHNldCBwcmVkaWN0aW9ucwogIGFjY3VyYWN5KHRydXRoID0gYWJ4eW4sIC5wcmVkX2NsYXNzKQoKcmF5X3Zpbl9wcmVkIDwtIAogIHByZWRpY3QocmF5X2ZpdCwgdmluc3ViKSAlPiUgCiAgYmluZF9jb2xzKHByZWRpY3QocmF5X2ZpdCwgdmluc3ViLCB0eXBlID0gInByb2IiKSkgJT4lIAogIGJpbmRfY29scyh2aW5zdWIgJT4lIHNlbGVjdChhYnh5bikpCnJheV92aW5fcHJlZCAlPiUgICAgICAgICAgICAgICAgICAgIyB0ZXN0IHNldCBwcmVkaWN0aW9ucwogICAgcm9jX2F1Yyh0cnV0aCA9IGFieHluLCBlc3RpbWF0ZT0ucHJlZF9hbnRpYmlvdGljcykKcmF5X3Zpbl9wcmVkICU+JSAgICAgICAgICAgICAgICAgICAjIHRlc3Qgc2V0IHByZWRpY3Rpb25zCiAgYWNjdXJhY3kodHJ1dGggPSBhYnh5biwgLnByZWRfY2xhc3MpCgpyYXlfemF1X3ByZWQgPC0gCiAgcHJlZGljdChyYXlfZml0LCB6YXVzdWIpICU+JSAKICBiaW5kX2NvbHMocHJlZGljdChyYXlfZml0LCB6YXVzdWIsIHR5cGUgPSAicHJvYiIpKSAlPiUgCiAgYmluZF9jb2xzKHphdXN1YiAlPiUgc2VsZWN0KGFieHluKSkKcmF5X3phdV9wcmVkICU+JSAgICAgICAgICAgICAgICAgICAjIHRlc3Qgc2V0IHByZWRpY3Rpb25zCiAgICByb2NfYXVjKHRydXRoID0gYWJ4eW4sIGVzdGltYXRlPS5wcmVkX2FudGliaW90aWNzKQpyYXlfemF1X3ByZWQgJT4lICAgICAgICAgICAgICAgICAgICMgdGVzdCBzZXQgcHJlZGljdGlvbnMKICBhY2N1cmFjeSh0cnV0aCA9IGFieHluLCAucHJlZF9jbGFzcykKYGBgCgpgYGB7cn0KdmluX2ZpdCA8LSByZl9tb2QgJT4lIAogIGZpdChhYnh5biB+IC4sIGRhdGE9dmluc3ViKQoKdmluX3JheV9wcmVkIDwtIAogIHByZWRpY3QodmluX2ZpdCwgcmF5c3ViKSAlPiUgCiAgYmluZF9jb2xzKHByZWRpY3QodmluX2ZpdCwgcmF5c3ViLCB0eXBlID0gInByb2IiKSkgJT4lIAogIGJpbmRfY29scyhyYXlzdWIgJT4lIHNlbGVjdChhYnh5bikpCnZpbl9yYXlfcHJlZCAlPiUgICAgICAgICAgICAgICAgICAgIyB0ZXN0IHNldCBwcmVkaWN0aW9ucwogICAgcm9jX2F1Yyh0cnV0aCA9IGFieHluLCBlc3RpbWF0ZT0ucHJlZF9hbnRpYmlvdGljcykKdmluX3JheV9wcmVkICU+JSAgICAgICAgICAgICAgICAgICAjIHRlc3Qgc2V0IHByZWRpY3Rpb25zCiAgYWNjdXJhY3kodHJ1dGggPSBhYnh5biwgLnByZWRfY2xhc3MpCgp2aW5fdmluX3ByZWQgPC0gCiAgcHJlZGljdChyYXlfZml0LCB2aW5zdWIpICU+JSAKICBiaW5kX2NvbHMocHJlZGljdCh2aW5fZml0LCB2aW5zdWIsIHR5cGUgPSAicHJvYiIpKSAlPiUgCiAgYmluZF9jb2xzKHZpbnN1YiAlPiUgc2VsZWN0KGFieHluKSkKdmluX3Zpbl9wcmVkICU+JSAgICAgICAgICAgICAgICAgICAjIHRlc3Qgc2V0IHByZWRpY3Rpb25zCiAgICByb2NfYXVjKHRydXRoID0gYWJ4eW4sIGVzdGltYXRlPS5wcmVkX2FudGliaW90aWNzKQp2aW5fdmluX3ByZWQgJT4lICAgICAgICAgICAgICAgICAgICMgdGVzdCBzZXQgcHJlZGljdGlvbnMKICBhY2N1cmFjeSh0cnV0aCA9IGFieHluLCAucHJlZF9jbGFzcykKCnZpbl96YXVfcHJlZCA8LSAKICBwcmVkaWN0KHZpbl9maXQsIHphdXN1YikgJT4lIAogIGJpbmRfY29scyhwcmVkaWN0KHZpbl9maXQsIHphdXN1YiwgdHlwZSA9ICJwcm9iIikpICU+JSAKICBiaW5kX2NvbHMoemF1c3ViICU+JSBzZWxlY3QoYWJ4eW4pKQp2aW5femF1X3ByZWQgJT4lICAgICAgICAgICAgICAgICAgICMgdGVzdCBzZXQgcHJlZGljdGlvbnMKICAgIHJvY19hdWModHJ1dGggPSBhYnh5biwgZXN0aW1hdGU9LnByZWRfYW50aWJpb3RpY3MpCnZpbl96YXVfcHJlZCAlPiUgICAgICAgICAgICAgICAgICAgIyB0ZXN0IHNldCBwcmVkaWN0aW9ucwogIGFjY3VyYWN5KHRydXRoID0gYWJ4eW4sIC5wcmVkX2NsYXNzKQpgYGAKYGBge3J9CnphdV9maXQgPC0gcmZfbW9kICU+JSAKICBmaXQoYWJ4eW4gfiAuLCBkYXRhPXphdXN1YikKCnphdV9yYXlfcHJlZCA8LSAKICBwcmVkaWN0KHphdV9maXQsIHJheXN1YikgJT4lIAogIGJpbmRfY29scyhwcmVkaWN0KHphdV9maXQsIHJheXN1YiwgdHlwZSA9ICJwcm9iIikpICU+JSAKICBiaW5kX2NvbHMocmF5c3ViICU+JSBzZWxlY3QoYWJ4eW4pKQp6YXVfcmF5X3ByZWQgJT4lICAgICAgICAgICAgICAgICAgICMgdGVzdCBzZXQgcHJlZGljdGlvbnMKICAgIHJvY19hdWModHJ1dGggPSBhYnh5biwgZXN0aW1hdGU9LnByZWRfYW50aWJpb3RpY3MpCnphdV9yYXlfcHJlZCAlPiUgICAgICAgICAgICAgICAgICAgIyB0ZXN0IHNldCBwcmVkaWN0aW9ucwogIGFjY3VyYWN5KHRydXRoID0gYWJ4eW4sIC5wcmVkX2NsYXNzKQoKemF1X3Zpbl9wcmVkIDwtIAogIHByZWRpY3QoemF1X2ZpdCwgdmluc3ViKSAlPiUgCiAgYmluZF9jb2xzKHByZWRpY3QoemF1X2ZpdCwgdmluc3ViLCB0eXBlID0gInByb2IiKSkgJT4lIAogIGJpbmRfY29scyh2aW5zdWIgJT4lIHNlbGVjdChhYnh5bikpCnphdV92aW5fcHJlZCAlPiUgICAgICAgICAgICAgICAgICAgIyB0ZXN0IHNldCBwcmVkaWN0aW9ucwogICAgcm9jX2F1Yyh0cnV0aCA9IGFieHluLCBlc3RpbWF0ZT0ucHJlZF9hbnRpYmlvdGljcykKemF1X3Zpbl9wcmVkICU+JSAgICAgICAgICAgICAgICAgICAjIHRlc3Qgc2V0IHByZWRpY3Rpb25zCiAgYWNjdXJhY3kodHJ1dGggPSBhYnh5biwgLnByZWRfY2xhc3MpCgp6YXVfemF1X3ByZWQgPC0gCiAgcHJlZGljdCh6YXVfZml0LCB6YXVzdWIpICU+JSAKICBiaW5kX2NvbHMocHJlZGljdCh6YXVfZml0LCB6YXVzdWIsIHR5cGUgPSAicHJvYiIpKSAlPiUgCiAgYmluZF9jb2xzKHphdXN1YiAlPiUgc2VsZWN0KGFieHluKSkKemF1X3phdV9wcmVkICU+JSAgICAgICAgICAgICAgICAgICAjIHRlc3Qgc2V0IHByZWRpY3Rpb25zCiAgICByb2NfYXVjKHRydXRoID0gYWJ4eW4sIGVzdGltYXRlPS5wcmVkX2FudGliaW90aWNzKQp6YXVfemF1X3ByZWQgJT4lICAgICAgICAgICAgICAgICAgICMgdGVzdCBzZXQgcHJlZGljdGlvbnMKICBhY2N1cmFjeSh0cnV0aCA9IGFieHluLCAucHJlZF9jbGFzcykKYGBgCmBgYAoKYGBge3J9CgpjYmluZCh0cmFpbnJheXRlc3RyYXk9cmF5X3JheV9wcmVkWzJdLCB0cmFpbnZpbnRlc3RyYXk9dmluX3JheV9wcmVkWzJdKQoKY29yKHJheV9yYXlfcHJlZFsyXSwgdmluX3JheV9wcmVkWzJdKQpjb3IocmF5X3JheV9wcmVkWzJdLCB6YXVfcmF5X3ByZWRbMl0pCmNvcih2aW5fdmluX3ByZWRbMl0sIHZpbl9yYXlfcHJlZFsyXSkKY29yKHphdV96YXVfcHJlZFsyXSwgdmluX3phdV9wcmVkWzJdKQpjb3IoemF1X3phdV9wcmVkWzJdLCB6YXVfcmF5X3ByZWRbMl0pCmNvcih6YXVfemF1X3ByZWRbMl0sIHZpbl96YXVfcHJlZFsyXSkKCmBgYAoKCgojIyBWaW5jZW50CmBgYHtyfQoKc3BsaXQgPC0gaW5pdGlhbF9zcGxpdCh2aW5zdWIpCnRyYWluIDwtIHRyYWluaW5nKHNwbGl0KQp0ZXN0IDwtIHRlc3Rpbmcoc3BsaXQpCgpyZl9tb2QgPC0gCiAgcmFuZF9mb3Jlc3QodHJlZXMgPSAxMDAwKSAlPiUgCiAgc2V0X2VuZ2luZSgicmFuZ2VyIikgJT4lIAogIHNldF9tb2RlKCJjbGFzc2lmaWNhdGlvbiIpCgpyZl9maXQgPC0gcmZfbW9kICU+JSAKICBmaXQoYWJ4eW4gfiAuLCBkYXRhPXRyYWluKQoKcmZfdGVzdGluZ19wcmVkIDwtIAogIHByZWRpY3QocmZfZml0LCB0ZXN0KSAlPiUgCiAgYmluZF9jb2xzKHByZWRpY3QocmZfZml0LCB0ZXN0LCB0eXBlID0gInByb2IiKSkgJT4lIAogIGJpbmRfY29scyh0ZXN0ICU+JSBzZWxlY3QoYWJ4eW4pKQpyZl90ZXN0aW5nX3ByZWQgJT4lICAgICAgICAgICAgICAgICAgICMgdGVzdCBzZXQgcHJlZGljdGlvbnMKICAgIHJvY19hdWModHJ1dGggPSBhYnh5biwgZXN0aW1hdGU9LnByZWRfYW50aWJpb3RpY3MpCnJmX3Rlc3RpbmdfcHJlZCAlPiUgICAgICAgICAgICAgICAgICAgIyB0ZXN0IHNldCBwcmVkaWN0aW9ucwogIGFjY3VyYWN5KHRydXRoID0gYWJ4eW4sIC5wcmVkX2NsYXNzKQpgYGAKCiMjIFphdXJhCmBgYHtyfQoKc3BsaXQgPC0gaW5pdGlhbF9zcGxpdCh6YXVzdWIpCnRyYWluIDwtIHRyYWluaW5nKHNwbGl0KQp0ZXN0IDwtIHRlc3Rpbmcoc3BsaXQpCgpyZl9tb2QgPC0gCiAgcmFuZF9mb3Jlc3QodHJlZXMgPSAxMDAwKSAlPiUgCiAgc2V0X2VuZ2luZSgicmFuZ2VyIikgJT4lIAogIHNldF9tb2RlKCJjbGFzc2lmaWNhdGlvbiIpCgpyZl9maXQgPC0gcmZfbW9kICU+JSAKICBmaXQoYWJ4eW4gfiAuLCBkYXRhPXRyYWluKQoKcmZfdGVzdGluZ19wcmVkIDwtIAogIHByZWRpY3QocmZfZml0LCB0ZXN0KSAlPiUgCiAgYmluZF9jb2xzKHByZWRpY3QocmZfZml0LCB0ZXN0LCB0eXBlID0gInByb2IiKSkgJT4lIAogIGJpbmRfY29scyh0ZXN0ICU+JSBzZWxlY3QoYWJ4eW4pKQpyZl90ZXN0aW5nX3ByZWQgJT4lICAgICAgICAgICAgICAgICAgICMgdGVzdCBzZXQgcHJlZGljdGlvbnMKICAgIHJvY19hdWModHJ1dGggPSBhYnh5biwgZXN0aW1hdGU9LnByZWRfYW50aWJpb3RpY3MpCnJmX3Rlc3RpbmdfcHJlZCAlPiUgICAgICAgICAgICAgICAgICAgIyB0ZXN0IHNldCBwcmVkaWN0aW9ucwogIGFjY3VyYWN5KHRydXRoID0gYWJ4eW4sIC5wcmVkX2NsYXNzKQpgYGAK</div>
 
 
 
@@ -1963,7 +2966,7 @@ $(document).ready(function () {
 <!-- code folding -->
 <script>
 $(document).ready(function () {
-  window.initializeSourceEmbed("Tidy_Zaura.Rmd");
+  window.initializeSourceEmbed("Tidy_Raymond+Vincent+Zaura.Rmd");
   window.initializeCodeFolding("show" === "show");
 });
 </script>

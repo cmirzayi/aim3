@@ -49,6 +49,7 @@ ray <- subset(rayvince, select =colData(rayvince)$study_name=="RaymondF_2016")
 
 colData(ray)$study_name %>% table()
 ```
+
 ```{r}
 raytidy <- tidy(ray, addPheno = TRUE)
 raytidy$study_condition <- raytidy$study_condition %>% as.factor()

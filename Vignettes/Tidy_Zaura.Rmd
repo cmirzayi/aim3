@@ -22,54 +22,103 @@ library(phyloseq)
 ```{r}
 phyloZaura <- import_biom("../data/Zaura/taxa.biom")
 zaura <- phyloZaura
+#treeZaura <- read_tree("../data/Zaura/phylo/rooted_tree.nwk")
+metaZaura <- read.csv("../data/Zaura/zaura metadata.csv")
+row.names(metaZaura) <- metaZaura$NCBI_accession
+#phy_tree(zaura) <- treeZaura
+sample_data(zaura) <- metaZaura
+```
+
+
+# Get NCBI taxon ids
+```{r}
+library(taxizedb)
+db_download_ncbi()
+ncbi <- src_ncbi()
+ncbi
+```
+```{r}
+zauragenus <- subset_taxa(zaura, Rank6!="none")
+zaurag <- tax_glom(zauragenus, "Rank6")
+zauraprop <- transform_sample_counts(zaurag, function(x) x / sum(x))
+
+#Get column from tax table
+taxCol <- tax_table(zauraprop)[,6]
+#Send column cell to name2taxid
+firstid <- function(x){
+  y <- name2taxid(x, out_type = "summary")[1,2]
+  return(y)
+}
+taxList <- lapply(taxCol, firstid)
+taxNCBI <- map_dfr(taxList, bind_rows)
+
+convert2ncbi <- function(phylo){
+  taxtable <- tax_table(phylo)
+  ranks <- dim(taxtable)[2]
+  taxa <- dim(taxtable)[1]
+  ncbis <- data.frame(num=1:taxa)
+  for (x in 1:6){
+    taxCol <- taxtable[,x]
+    taxList <- lapply(taxCol, firstid)
+    taxNCBI <- map_dfr(taxList, bind_rows)
+    ncbis <- cbind(ncbis, taxNCBI)
+  }
+  return(ncbis)
+}
+
+ncbiranks <- convert2ncbi(zauraprop)
+
+rvgenera <- rownames(otu_table(phylorv)) %>% stringr::str_extract(pattern="\\d{1,}")
+ncbiranks[,7] %in%  rvgenera %>% table()
+newrownames <- data.frame(newname=ncbiranks[,7], tax_table(zauraprop))
+
+newrownames <- newrownames %>% 
+    mutate(rankname = coalesce(newname,Rank6))
+
+#There's one duplicate so let's just change it for now
+newrownames$rankname[newrownames$Rank6=="Christensenella"] <- "duplicate"
+
+taxa_names(zauraprop) <- newrownames$rankname
+taxa_names(phylorv) <- rvgenera
+#Use [1,2] result and return it
+#Make new tax table with results
 
 ```
 
 
 
-
-# Right now the otu_table is hard to understand
+# Convert OTU table to proportions and trim
 ```{r}
-zauracount <- transform_sample_counts(zaura, function(x) x / sum(x))
-zauraFilt= filter_taxa(zauracount, function(x) mean(x) < .0001,TRUE)
+# Select only taxa on the genus level
+
+
+zauragenus <- filter_taxa(zaura, taxon_ranks == "Rank6")
+zauraFilt= filter_taxa(zaura, function(x) mean(x) <.01,TRUE)
 rmtaxa = taxa_names(zauraFilt)
 alltaxa = taxa_names(zaura)
 
 myTaxa = alltaxa[!alltaxa %in% rmtaxa]
 
-zauraPruned <- prune_taxa(myTaxa,zauracount)
+zauraPruned <- prune_taxa(myTaxa,zaura)
+
+
+
 
 ```
 
-
+# Turn it into a TSE and tidy it
 ```{r}
 Zauratse <- makeTreeSummarizedExperimentFromPhyloseq(zauraPruned)
 Zauratidy <- tidy(Zauratse, addPheno = TRUE)
 Zaurawide <- pivot_wider(Zauratidy, names_from = gene, values_from = value)
-```
-
-
-# Try it with just a plain regression
-```{r}
-Zauraglm <- glm(study_condition ~ `seq118`, data = Zaurawide,
-              family=binomial(link="logit"))
-tidy(Zauraglm)
-```
-
-# Compare to tidymodels regression results, results should be identical
-
-```{r}
-
-lm_mod <- logistic_reg() %>% set_engine("glm")
-lm_fit <- lm_mod %>% fit(study_condition ~  `seq118`, data=Zaurawide)
-tidy(lm_fit)
+Zaurasub<- Zaurawide %>% select(c("TreatmentGroup", starts_with("seq")))
+Zaurasub$TreatmentGroup <- factor(Zaurasub$TreatmentGroup)
 ```
 
 
 ```{r}
 # Select only the microbiome vars
-Zaurasub<- Zaurawide %>% select(c("TreatmentGroup", starts_with("seq")))
-Zaurasub$TreatmentGroup <- factor(Zaurasub$TreatmentGroup)
+
 set.seed(732981)
 Zaurasplit <- initial_split(Zaurasub)
 Zauratrain <- training(Zaurasplit)

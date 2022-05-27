@@ -1,0 +1,371 @@
+---
+title: "Raymond + Vincent + Zaura"
+output: html_notebook
+---
+
+# Load required packages
+
+SIAMCAT is used for analysis
+
+```{r}
+library(curatedMetagenomicData)
+library(dplyr)
+library(mia)
+library(tidymodels)
+library(stringr)
+library(ggplot2)
+library(dotwhisker)
+library(biobroom)
+```
+
+# Load Zaura dataset
+```{r}
+phyloZaura <- import_biom("../data/Zaura/taxa.biom")
+zaura <- phyloZaura
+
+metaZaura <- read.csv("../data/Zaura/zaura metadata.csv")
+row.names(metaZaura) <- metaZaura$NCBI_accession
+
+sample_data(zaura) <- metaZaura
+```
+
+## Get NCBI names to merge with Zaura
+
+### Get NCBI taxon ids
+```{r}
+library(taxizedb)
+db_download_ncbi()
+ncbi <- src_ncbi()
+ncbi
+```
+
+
+
+# Filter cMD metadata table for Vincent and Raymond
+```{r}
+meta <- curatedMetagenomicData::sampleMetadata
+meta$study_name %>% table()
+
+submeta <- meta %>% filter(study_name=="VincentC_2016" | study_name=="RaymondF_2016")
+submeta$study_name %>% table()
+```
+
+# Download data from cMD for matching metadata
+Table should match the metadata table
+```{r}
+rayvince <- returnSamples(submeta, "relative_abundance", rownames = "NCBI")
+
+assay(rayvince) <- assay(rayvince)/100
+rayvincegenus <- agglomerateByRank(rayvince, "genus")
+phylorv <- makePhyloseqFromTreeSummarizedExperiment(rayvincegenus, abund_values = "relative_abundance")
+```
+
+
+## Lookup Zaura and merge
+```{r}
+zauragenus <- subset_taxa(zaura, Rank6!="none")
+zaurag <- tax_glom(zauragenus, "Rank6")
+zauraprop <- transform_sample_counts(zaurag, function(x) x / sum(x))
+
+#Get column from tax table
+taxCol <- tax_table(zauraprop)[,6]
+#Send column cell to name2taxid
+firstid <- function(x){
+  y <- name2taxid(x, out_type = "summary")[1,2]
+  return(y)
+}
+taxList <- lapply(taxCol, firstid)
+taxNCBI <- map_dfr(taxList, bind_rows)
+
+convert2ncbi <- function(phylo){
+  taxtable <- tax_table(phylo)
+  ranks <- dim(taxtable)[2]
+  taxa <- dim(taxtable)[1]
+  ncbis <- data.frame(num=1:taxa)
+  for (x in 1:6){
+    taxCol <- taxtable[,x]
+    taxList <- lapply(taxCol, firstid)
+    taxNCBI <- map_dfr(taxList, bind_rows)
+    ncbis <- cbind(ncbis, taxNCBI)
+  }
+  return(ncbis)
+}
+
+ncbiranks <- convert2ncbi(zauraprop)
+
+rvgenera <- rownames(otu_table(phylorv)) %>% stringr::str_extract(pattern="\\d{1,}")
+ncbiranks[,7] %in%  rvgenera %>% table()
+newrownames <- data.frame(newname=ncbiranks[,7], tax_table(zauraprop))
+
+newrownames <- newrownames %>% 
+    mutate(rankname = coalesce(newname,Rank6))
+
+#There's one duplicate so let's just change it for now
+newrownames$rankname[newrownames$Rank6=="Christensenella"] <- "duplicate"
+
+#Use [1,2] result and return it
+#Make new tax table with results
+taxa_names(zauraprop) <- newrownames$rankname
+taxa_names(phylorv) <- rvgenera
+
+```
+
+# Proportions in cMD are presented as percentages. Need to be decimals. Divide by 100.
+```{r}
+prvtaxa <- merge_taxa(phylorv, zauraprop)
+rvz <- merge_phyloseq(prvtaxa, zauraprop)
+```
+
+Have to recode all the antibiotics to match
+```{r}
+sample_data(rvz)$abx <- "none"
+sample_data(rvz)$abx[sample_data(rvz)$study_condition=="amox"] <- "penicillins"
+sample_data(rvz)$abx[sample_data(rvz)$study_condition=="cephalosporins"] <- "cephalosporins"
+sample_data(rvz)$abx[sample_data(rvz)$study_condition=="cipro"] <- "quinolones"
+sample_data(rvz)$abx[sample_data(rvz)$study_condition=="clinda"] <- "lincosamides"
+sample_data(rvz)$abx[sample_data(rvz)$study_condition=="control"] <- "none"
+sample_data(rvz)$abx[sample_data(rvz)$study_condition=="minoc"] <- "tetracyclines"
+sample_data(rvz)$abx[sample_data(rvz)$study_condition=="minoc, minoc"] <- "tetracyclines"
+sample_data(rvz)$abx[sample_data(rvz)$study_condition=="placebo"] <- "none"
+
+sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family=="aminoglycosides;beta_lactamase_inhibitors;laxatives;penicillin "] <- "multi"
+sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family=="beta_lactamase_inhibitors;carbapenems;cephalosporins;fluoroquinolones;penicillin "] <- "multi"
+sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family=="beta_lactamase_inhibitors;carbapenems;cephalosporins;penicillin"] <- "multi"
+sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family=="beta_lactamase_inhibitors;carbapenems;fluoroquinolones;penicillin"] <- "multi"
+sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family=="beta_lactamase_inhibitors;macrolides;penicillin"] <- "multi"
+sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family=="beta_lactamase_inhibitors;penicillin"] <- "penicillins"
+
+sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family=="carbapenems"] <- "carbapenems"
+sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family=="carbapenems;fluoroquinolones"] <- "multi"
+sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family=="carbapenems;fluoroquinolones;laxatives"] <- "multi"
+sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family=="carbapenems;laxatives"] <- "cabapenems"
+sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family=="cephalosporins"] <- "cephalosporins"
+sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family=="fluoroquinolones"] <- "fluoroquinolones"
+sample_data(rvz)$abx[sample_data(rvz)$antibiotics_family=="macrolides"] <- "macrolides"
+
+sample_data(rvz)$abxyn[sample_data(rvz)$abx=="none"]<-"none"
+sample_data(rvz)$abxyn[sample_data(rvz)$abx!="none"]<-"antibiotics"
+```
+
+```{r}
+rvztse <- makeTreeSummarizedExperimentFromPhyloseq(rvz)
+rvztidy <- tidy(rvztse, addPheno = TRUE)
+rvzwide <- pivot_wider(rvztidy, names_from = gene, values_from = value)
+```
+
+
+It's really bad. Probably need to do some resampling and maybe not agglomerate to class
+```{r}
+# Select only the microbiome vars
+
+
+rvzsub <- rvzwide %>% select(c("abxyn", "study_name", "days_from_first_collection",
+                              matches("\\d$"), -"glp_1", -"cd163", -"il_1", - "PFS12",
+                              -"fgf_19", -"anti_PD_1", -"hla_drb12", -"hla_dqa12",
+                              -"hla_dqa11", -"hla_drb11"))
+rvzsub$abxyn <- factor(rvzsub$abxyn)
+set.seed(732981)
+split <- initial_split(rvzsub)
+train <- training(split)
+test <- testing(split)
+
+rf_mod <- 
+  rand_forest(trees = 1000) %>% 
+  set_engine("ranger") %>% 
+  set_mode("classification")
+
+rf_fit <- rf_mod %>% 
+  fit(abxyn ~ ., data=train)
+
+rf_testing_pred <- 
+  predict(rf_fit, test) %>% 
+  bind_cols(predict(rf_fit, test, type = "prob")) %>% 
+  bind_cols(test %>% select(abxyn))
+rf_testing_pred %>%                   # test set predictions
+    roc_auc(truth = abxyn, estimate=.pred_antibiotics)
+rf_testing_pred %>%                   # test set predictions
+  accuracy(truth = abxyn, .pred_class)
+```
+
+# Divide dataset into three separate datasets by name
+```{r}
+raysub <- rvzsub[rvzsub$study_name=="RaymondF_2016" & rvzsub$days_from_first_collection>0,]
+vinsub <- rvzsub[rvzsub$study_name=="VincentC_2016",]
+zausub <- rvzsub[rvzsub$study_name=="ZauraE_2015",]
+```
+
+# Ensemble-y analysis
+# Fit a prediction model on each dataset then apply that model to the other two datasets
+## raymond
+```{r}
+raysub <- raysub %>% select(-"study_name")
+raysub <- raysub %>% select(-"days_from_first_collection")
+vinsub <- vinsub %>% select(-"study_name")
+zausub <- zausub %>% select(-"study_name")
+raysub$abxyn <- factor(raysub$abxyn)
+
+
+rf_mod <- 
+  rand_forest(trees = 1000) %>% 
+  set_engine("ranger") %>% 
+  set_mode("classification")
+
+ray_fit <- rf_mod %>% 
+  fit(abxyn ~ ., data=raysub)
+
+ray_ray_pred <- 
+  predict(ray_fit, raysub) %>% 
+  bind_cols(predict(ray_fit, raysub, type = "prob")) %>% 
+  bind_cols(raysub %>% select(abxyn))
+ray_ray_pred %>%                   # test set predictions
+    roc_auc(truth = abxyn, estimate=.pred_antibiotics)
+ray_ray_pred %>%                   # test set predictions
+  accuracy(truth = abxyn, .pred_class)
+
+ray_vin_pred <- 
+  predict(ray_fit, vinsub) %>% 
+  bind_cols(predict(ray_fit, vinsub, type = "prob")) %>% 
+  bind_cols(vinsub %>% select(abxyn))
+ray_vin_pred %>%                   # test set predictions
+    roc_auc(truth = abxyn, estimate=.pred_antibiotics)
+ray_vin_pred %>%                   # test set predictions
+  accuracy(truth = abxyn, .pred_class)
+
+ray_zau_pred <- 
+  predict(ray_fit, zausub) %>% 
+  bind_cols(predict(ray_fit, zausub, type = "prob")) %>% 
+  bind_cols(zausub %>% select(abxyn))
+ray_zau_pred %>%                   # test set predictions
+    roc_auc(truth = abxyn, estimate=.pred_antibiotics)
+ray_zau_pred %>%                   # test set predictions
+  accuracy(truth = abxyn, .pred_class)
+```
+
+```{r}
+vin_fit <- rf_mod %>% 
+  fit(abxyn ~ ., data=vinsub)
+
+vin_ray_pred <- 
+  predict(vin_fit, raysub) %>% 
+  bind_cols(predict(vin_fit, raysub, type = "prob")) %>% 
+  bind_cols(raysub %>% select(abxyn))
+vin_ray_pred %>%                   # test set predictions
+    roc_auc(truth = abxyn, estimate=.pred_antibiotics)
+vin_ray_pred %>%                   # test set predictions
+  accuracy(truth = abxyn, .pred_class)
+
+vin_vin_pred <- 
+  predict(ray_fit, vinsub) %>% 
+  bind_cols(predict(vin_fit, vinsub, type = "prob")) %>% 
+  bind_cols(vinsub %>% select(abxyn))
+vin_vin_pred %>%                   # test set predictions
+    roc_auc(truth = abxyn, estimate=.pred_antibiotics)
+vin_vin_pred %>%                   # test set predictions
+  accuracy(truth = abxyn, .pred_class)
+
+vin_zau_pred <- 
+  predict(vin_fit, zausub) %>% 
+  bind_cols(predict(vin_fit, zausub, type = "prob")) %>% 
+  bind_cols(zausub %>% select(abxyn))
+vin_zau_pred %>%                   # test set predictions
+    roc_auc(truth = abxyn, estimate=.pred_antibiotics)
+vin_zau_pred %>%                   # test set predictions
+  accuracy(truth = abxyn, .pred_class)
+```
+```{r}
+zau_fit <- rf_mod %>% 
+  fit(abxyn ~ ., data=zausub)
+
+zau_ray_pred <- 
+  predict(zau_fit, raysub) %>% 
+  bind_cols(predict(zau_fit, raysub, type = "prob")) %>% 
+  bind_cols(raysub %>% select(abxyn))
+zau_ray_pred %>%                   # test set predictions
+    roc_auc(truth = abxyn, estimate=.pred_antibiotics)
+zau_ray_pred %>%                   # test set predictions
+  accuracy(truth = abxyn, .pred_class)
+
+zau_vin_pred <- 
+  predict(zau_fit, vinsub) %>% 
+  bind_cols(predict(zau_fit, vinsub, type = "prob")) %>% 
+  bind_cols(vinsub %>% select(abxyn))
+zau_vin_pred %>%                   # test set predictions
+    roc_auc(truth = abxyn, estimate=.pred_antibiotics)
+zau_vin_pred %>%                   # test set predictions
+  accuracy(truth = abxyn, .pred_class)
+
+zau_zau_pred <- 
+  predict(zau_fit, zausub) %>% 
+  bind_cols(predict(zau_fit, zausub, type = "prob")) %>% 
+  bind_cols(zausub %>% select(abxyn))
+zau_zau_pred %>%                   # test set predictions
+    roc_auc(truth = abxyn, estimate=.pred_antibiotics)
+zau_zau_pred %>%                   # test set predictions
+  accuracy(truth = abxyn, .pred_class)
+```
+```
+
+```{r}
+
+cbind(trainraytestray=ray_ray_pred[2], trainvintestray=vin_ray_pred[2])
+
+cor(ray_ray_pred[2], vin_ray_pred[2])
+cor(ray_ray_pred[2], zau_ray_pred[2])
+cor(vin_vin_pred[2], vin_ray_pred[2])
+cor(zau_zau_pred[2], vin_zau_pred[2])
+cor(zau_zau_pred[2], zau_ray_pred[2])
+cor(zau_zau_pred[2], vin_zau_pred[2])
+
+```
+
+
+
+## Vincent
+```{r}
+
+split <- initial_split(vinsub)
+train <- training(split)
+test <- testing(split)
+
+rf_mod <- 
+  rand_forest(trees = 1000) %>% 
+  set_engine("ranger") %>% 
+  set_mode("classification")
+
+rf_fit <- rf_mod %>% 
+  fit(abxyn ~ ., data=train)
+
+rf_testing_pred <- 
+  predict(rf_fit, test) %>% 
+  bind_cols(predict(rf_fit, test, type = "prob")) %>% 
+  bind_cols(test %>% select(abxyn))
+rf_testing_pred %>%                   # test set predictions
+    roc_auc(truth = abxyn, estimate=.pred_antibiotics)
+rf_testing_pred %>%                   # test set predictions
+  accuracy(truth = abxyn, .pred_class)
+```
+
+## Zaura
+```{r}
+
+split <- initial_split(zausub)
+train <- training(split)
+test <- testing(split)
+
+rf_mod <- 
+  rand_forest(trees = 1000) %>% 
+  set_engine("ranger") %>% 
+  set_mode("classification")
+
+rf_fit <- rf_mod %>% 
+  fit(abxyn ~ ., data=train)
+
+rf_testing_pred <- 
+  predict(rf_fit, test) %>% 
+  bind_cols(predict(rf_fit, test, type = "prob")) %>% 
+  bind_cols(test %>% select(abxyn))
+rf_testing_pred %>%                   # test set predictions
+    roc_auc(truth = abxyn, estimate=.pred_antibiotics)
+rf_testing_pred %>%                   # test set predictions
+  accuracy(truth = abxyn, .pred_class)
+```
