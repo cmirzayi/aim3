@@ -1,0 +1,657 @@
+---
+title: "DIABIMMUNE Cohort"
+author: "Chloe Mirzayi"
+format: html
+editor: visual
+---
+
+## Antibiotics exposures in the DIABIMMUNE ABx Dataset
+
+```{r, echo=FALSE, message=FALSE}
+library(dplyr)
+library(mia)
+library(tidymodels)
+library(stringr)
+library(ggplot2)
+library(dotwhisker)
+library(biobroom)
+library(phyloseq)
+library(vegan)
+library(gridExtra)
+library(jtools)
+```
+
+### Load-in required data
+
+Data were processed by Nephele
+
+```{r}
+
+phyloYassour <- import_biom("../data/Yassour/taxa.biom")
+metaYassour <- read.csv("../data/Yassour/YassourM_2016_metadata.csv")
+treeYassour <- read_tree("../data/Yassour/phylo/rooted_tree.nwk")
+# One of the metadata rows is missing and should be removed
+metaYass <- sample_data(metaYassour)
+metaYass$SampleID <- metaYass$X.SampleID
+metaYass <- metaYass[!is.na(metaYass$SampleID)]
+sample_names(metaYass) <- metaYass$SampleID
+sample_data(phyloYassour) <- metaYass
+yass <- phyloYassour
+phy_tree(yass) <- treeYassour
+```
+
+### Calculate Beta diversity at each time point
+
+Let's make a function!
+
+```{r}
+
+betaDivPlot <- function(x){
+  dd <- sample_data(yass)$study_condition
+  dd.col <- rainbow(length(dd))
+  names(dd.col)  <- dd
+  subphylo <- prune_samples(sample_data(yass)$subject_id==x, x=yass)
+  bray <- distance(subphylo, method="bray") %>% as.matrix() %>% as.data.frame()
+  bray$sample_id <- colnames(bray)
+  phylosamp <- sample_data(yass) %>% data.frame()
+  joined <- inner_join (phylosamp, bray)
+  minsamp <- joined %>% filter(infant_age==min(infant_age)) %>% select(sample_id) %>% .[1,1]
+  joinsub <- joined %>% select(sample_id, infant_age, study_condition, braycurtis=all_of(minsamp)) %>% arrange(infant_age)
+  joinsub$study_condition[is.na(joinsub$study_condition)] <- "no abx"
+  plot <- ggplot(joinsub, aes(x=infant_age, y=braycurtis))+geom_line()+geom_point(aes(color=factor(study_condition))) +
+    scale_color_manual("Legend", values = dd.col)+ theme_minimal() +theme(legend.position="none") +
+  theme(axis.text.x=element_blank(), #remove x axis labels
+        axis.ticks.x=element_blank(), #remove x axis ticks
+        axis.text.y=element_blank(),  #remove y axis labels
+        axis.ticks.y=element_blank(),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank()#remove y axis ticks
+        ) 
+  return(plot)
+}
+```
+
+Test it out
+
+```{r}
+betaDivPlot("E010481")
+```
+
+```{r}
+subjects <- yass %>% sample_data() %>% data.frame() %>%  arrange(desc(study_condition)) %>% .$subject_id %>% unique()
+listPlots <- lapply(subjects, betaDivPlot)
+
+n <- length(listPlots)
+nCol <- floor(sqrt(n))
+do.call("grid.arrange", c(listPlots, ncol=nCol))
+```
+
+Let's try it while removing early days which might be introducing a different effect
+
+```{r}
+yassleft <- subset_samples(yass, infant_age>=180)
+```
+
+```{r}
+betaDivPlotLeft <- function(x){
+  dd <- sample_data(yassleft)$study_condition
+  dd.col <- rainbow(length(dd))
+  names(dd.col)  <- dd
+  subphylo <- prune_samples(sample_data(yassleft)$subject_id==x, x=yassleft)
+  bray <- distance(subphylo, method="bray") %>% as.matrix() %>% as.data.frame()
+  bray$sample_id <- colnames(bray)
+  phylosamp <- sample_data(yassleft) %>% data.frame()
+  joined <- inner_join (phylosamp, bray)
+  minsamp <- joined %>% filter(infant_age==min(infant_age)) %>% select(sample_id) %>% .[1,1]
+  joinsub <- joined %>% select(sample_id, infant_age, study_condition, braycurtis=all_of(minsamp)) %>% arrange(infant_age)
+  joinsub$study_condition[is.na(joinsub$study_condition)] <- "no abx"
+  plot <- ggplot(joinsub, aes(x=infant_age, y=braycurtis))+geom_line()+geom_point(aes(color=factor(study_condition))) +
+    scale_color_manual("Legend", values = dd.col)+ theme_minimal() +theme(legend.position="none") +
+  theme(axis.text.x=element_blank(), #remove x axis labels
+        axis.ticks.x=element_blank(), #remove x axis ticks
+        axis.text.y=element_blank(),  #remove y axis labels
+        axis.ticks.y=element_blank(),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank()#remove y axis ticks
+        ) 
+  return(plot)
+}
+```
+
+```{r}
+subjectsleft <- yassleft %>% sample_data() %>% data.frame() %>%  arrange(desc(study_condition)) %>% .$subject_id %>% unique()
+listPlots <- lapply(subjectsleft, betaDivPlotLeft)
+
+n <- length(listPlots)
+nCol <- floor(sqrt(n))
+do.call("grid.arrange", c(listPlots, ncol=nCol))
+```
+
+That didn't seem to do much. Let's average across study conditions and see if there's a difference
+
+Calculate dissimilarity over time for each subject
+
+Determine study condition and add to sample_data()
+
+```{r}
+library(microViz)
+studyconds <- sample_data(yass) %>% group_by(subject_id) %>% summarize(subject_id=dplyr::first(subject_id), abxexpose = n_distinct(study_condition)>1)
+
+yass <- ps_join(yass, studyconds)
+```
+
+```{r}
+betaValues <- function(x){
+  dd <- sample_data(yass)$study_condition
+  dd.col <- rainbow(length(dd))
+  names(dd.col)  <- dd
+  subphylo <- prune_samples(sample_data(yass)$subject_id==x, x=yass)
+  bray <- distance(subphylo, method="bray") %>% as.matrix() %>% as.data.frame()
+  bray$sample_id <- colnames(bray)
+  phylosamp <- sample_data(yass) %>% data.frame()
+  joined <- inner_join (phylosamp, bray)
+  minsamp <- joined %>% filter(infant_age==max(infant_age)) %>% select(sample_id) %>% .[1,1]
+  joinsub <- joined %>% select(subject_id, sample_id, infant_age, agecat, study_condition, abxexpose, braycurtis=all_of(minsamp)) %>% arrange(infant_age)
+  joinsub$study_condition[is.na(joinsub$study_condition)] <- "no abx"
+  return(joinsub)
+}
+```
+
+```{r, warning=FALSE, message=FALSE}
+sample_data(yass)$agecat[sample_data(yass)$infant_age<100] <- "0-99 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=100 & sample_data(yass)$infant_age < 200] <- "100-199 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=200 & sample_data(yass)$infant_age < 300] <- "200-299 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=300 & sample_data(yass)$infant_age < 400] <- "300-399 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=400 & sample_data(yass)$infant_age < 500] <- "400-499 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=500 & sample_data(yass)$infant_age < 600] <- "500-599 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=600 & sample_data(yass)$infant_age < 700] <- "600-699 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=700 & sample_data(yass)$infant_age < 800] <- "700-799 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=800 & sample_data(yass)$infant_age < 900] <- "800-899 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=900 & sample_data(yass)$infant_age < 1000] <- "900-999 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=1000 & sample_data(yass)$infant_age < 1100] <- "x1000-1099 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=1100 & sample_data(yass)$infant_age < 1200] <- "x1100-1199 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=1200 & sample_data(yass)$infant_age < 1300] <- "x1200-1299 days"
+```
+
+```{r}
+listValues <- lapply(subjects, betaValues)
+dfValues <- as.data.frame(do.call(rbind, listValues)) %>% arrange(infant_age)
+plotValues <- dfValues %>% group_by(abxexpose, agecat) %>% summarize(bc=mean(braycurtis))
+
+ggplot(data=plotValues, aes(x=agecat, y=bc)) + geom_line(aes(group=abxexpose, color=abxexpose))+ scale_x_discrete(labels = function(x) str_wrap(x, width = 0.01))
+```
+
+Calculate average dissimilarity for each time category
+
+Select a time point then calculate average within participant dissimilarity within that timepoint
+
+```{r}
+t1cases <- prune_samples(sample_data(yass)$agecat=="800-899 days" & sample_data(yass)$abxexpose==TRUE, x=yass)
+brayt1cases <- distance(t1cases, method="bray") %>% as.matrix()
+brayt1cases %>% mean()
+
+```
+
+```{r}
+
+avgBetaDivPlot <- function(x){
+  dd <- sample_data(yass)$study_condition
+  dd.col <- rainbow(length(dd))
+  names(dd.col)  <- dd
+  subphylo <- prune_samples(sample_data(yass)$subject_id==x, x=yass)
+  bray <- distance(subphylo, method="bray") %>% as.matrix() %>% as.data.frame()
+  bray$sample_id <- colnames(bray)
+  phylosamp <- sample_data(yass) %>% data.frame()
+  joined <- inner_join (phylosamp, bray)
+  minsamp <- joined %>% filter(infant_age==min(infant_age)) %>% select(sample_id) %>% .[1,1]
+  joinsub <- joined %>% select(sample_id, infant_age, study_condition, braycurtis=all_of(minsamp)) %>% arrange(infant_age)
+  joinsub$study_condition[is.na(joinsub$study_condition)] <- "no abx"
+  return(joinsub)
+}
+```
+
+```{r}
+avgBetaDivPlot("E010481")
+```
+
+### PCOA
+
+Simplify antibiotics exposures
+
+```{r}
+sample_data(yass)$penicillins <- 0
+sample_data(yass)$cephalosporins <- 0
+sample_data(yass)$macrolides <- 0
+sample_data(yass)$sulfonamides <- 0
+sample_data(yass)$other <- 0
+sample_data(yass)$abx <- "none"
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Amoxicillin"] <- "penicillins"
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Amoxicillin"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Cefalexin"] <- "cephalosporins"
+sample_data(yass)$cephalosporins[sample_data(yass)$study_condition=="Cefalexin"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Amoxicillin and clavulanic acid"] <- "penicillins"
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Amoxicillin and clavulanic acid"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Azithromycin"] <- "macrolides"
+sample_data(yass)$macrolides[sample_data(yass)$study_condition=="Azithromycin"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Amoxicillin, Amoxicillin and clavulanic acid"] <- "penicillins"
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Amoxicillin, Amoxicillin and clavulanic acid"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Amoxicillin and clavulanic acid, Amoxicillin and clavulanic acid"] <- "penicillins"
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Amoxicillin and clavulanic acid, Amoxicillin and clavulanic acid"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Trimetoprime and sulfadiazine, Amoxicillin"] <- "multi"
+sample_data(yass)$sulfonamides[sample_data(yass)$study_condition=="Trimetoprime and sulfadiazine, Amoxicillin"] <- 1
+  sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Trimetoprime and sulfadiazine, Amoxicillin"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Trimetoprime and sulfadiazine"] <- "sulfonamides"
+sample_data(yass)$sulfonamides[sample_data(yass)$study_condition=="Trimetoprime and sulfadiazine"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Amoxicillin, Cefaclor, Azithromycin"] <- "multi"
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Amoxicillin, Cefaclor, Azithromycin"] <- 1
+sample_data(yass)$macrolides[sample_data(yass)$study_condition=="Amoxicillin, Cefaclor, Azithromycin"] <- 1
+sample_data(yass)$cephalosporins[sample_data(yass)$study_condition=="Amoxicillin, Cefaclor, Azithromycin"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Azithromycin, Cefalexin, Trimetoprime and sulfadiazine"] <- "multi"
+sample_data(yass)$macrolides[sample_data(yass)$study_condition=="Azithromycin, Cefalexin, Trimetoprime and sulfadiazine"] <- 1
+sample_data(yass)$cephalosporins[sample_data(yass)$study_condition=="Azithromycin, Cefalexin, Trimetoprime and sulfadiazine"] <- 1 
+sample_data(yass)$sulfonamides[sample_data(yass)$study_condition=="Azithromycin, Cefalexin, Trimetoprime and sulfadiazine"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Azithromycin, Trimetoprime and sulfadiazine"] <- "multi"
+sample_data(yass)$macrolides[sample_data(yass)$study_condition=="Azithromycin, Trimetoprime and sulfadiazine"] <- 1
+sample_data(yass)$sulfonamides[sample_data(yass)$study_condition=="Azithromycin, Trimetoprime and sulfadiazine"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Amoxicillin, Cefalexin, Trimetoprime and sulfadiazine"] <- "multi"
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Amoxicillin, Cefalexin, Trimetoprime and sulfadiazine"] <- 1
+sample_data(yass)$cephalosporins[sample_data(yass)$study_condition=="Amoxicillin, Cefalexin, Trimetoprime and sulfadiazine"] <- 1
+sample_data(yass)$sulfonamides[sample_data(yass)$study_condition=="Amoxicillin, Cefalexin, Trimetoprime and sulfadiazine"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Cefaclor"] <- "cephalosporins"
+sample_data(yass)$cephalosporins[sample_data(yass)$study_condition=="Cefaclor"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Amoxicillin and clavulanic acid, Trimetoprime and sulfadiazine"] <- "multi"
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Amoxicillin and clavulanic acid, Trimetoprime and sulfadiazine"] <- 1
+sample_data(yass)$sulfonamides[sample_data(yass)$study_condition=="Amoxicillin and clavulanic acid, Trimetoprime and sulfadiazine"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Phenoxymethylpenicillin"] <- "penicillins"
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Phenoxymethylpenicillin"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Clarithromycin"] <- "macrolides"
+sample_data(yass)$macrolides[sample_data(yass)$study_condition=="Clarithromycin"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Trimetoprime and sulfadiazine, Trimetoprime and sulfadiazine"] <- "sulfonamides"
+sample_data(yass)$sulfonamides[sample_data(yass)$study_condition=="Trimetoprime and sulfadiazine, Trimetoprime and sulfadiazine"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Trimetoprime and sulfadiazine, Amoxicillin and clavulanic acid"] <- "multi"
+sample_data(yass)$sulfonamides[sample_data(yass)$study_condition=="Trimetoprime and sulfadiazine, Amoxicillin and clavulanic acid"] <- 1
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Trimetoprime and sulfadiazine, Amoxicillin and clavulanic acid"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Amoxicillin and clavulanic acid, Azithromycin, Amoxicillin and clavulanic acid"] <- "multi"
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Amoxicillin and clavulanic acid, Azithromycin, Amoxicillin and clavulanic acid"] <- 1
+sample_data(yass)$macrolides[sample_data(yass)$study_condition=="Amoxicillin and clavulanic acid, Azithromycin, Amoxicillin and clavulanic acid"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Clarithromycin, Cefalexin"] <- "multi"
+sample_data(yass)$macrolides[sample_data(yass)$study_condition=="Clarithromycin, Cefalexin"] <- 1
+sample_data(yass)$cephalosporins[sample_data(yass)$study_condition=="Clarithromycin, Cefalexin"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Cefalexin, Amoxicillin"] <- "multi"
+sample_data(yass)$cephalosporins[sample_data(yass)$study_condition=="Cefalexin, Amoxicillin"] <- 1
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Cefalexin, Amoxicillin"] <- 1
+  
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Ceftriaxone, Ceftriaxone"] <- "cephalosporins"
+sample_data(yass)$cephalosporins[sample_data(yass)$study_condition=="Ceftriaxone, Ceftriaxone"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Amoxicillin, Trimetoprime and sulfadiazine"] <- "multi"
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Amoxicillin, Trimetoprime and sulfadiazine"] <- 1
+sample_data(yass)$sulfonamides[sample_data(yass)$study_condition=="Amoxicillin, Trimetoprime and sulfadiazine"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Azithromycin, Amoxicillin and clavulanic acid" ] <- "multi"
+sample_data(yass)$macrolides[sample_data(yass)$study_condition=="Azithromycin, Amoxicillin and clavulanic acid" ] <- 1
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Azithromycin, Amoxicillin and clavulanic acid" ] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Penicillin G, Netilmicin"] <- "multi"
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Penicillin G, Netilmicin"] <- 1
+sample_data(yass)$other[sample_data(yass)$study_condition=="Penicillin G, Netilmicin"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Clarithromycin, Trimetoprime and sulfadiazine"] <- "multi"
+sample_data(yass)$macrolides[sample_data(yass)$study_condition=="Clarithromycin, Trimetoprime and sulfadiazine"] <- 1
+sample_data(yass)$sulfonamides[sample_data(yass)$study_condition=="Clarithromycin, Trimetoprime and sulfadiazine"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Ceftriaxone"] <- "cephalosporins"
+sample_data(yass)$cephalosporins[sample_data(yass)$study_condition=="Ceftriaxone"] <- 1
+  
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Amoxicillin and clavulanic acid, Trimetoprime and sulfadiazine, Cefalexin, Amoxicillin and clavulanic acid"] <- "multi"
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Amoxicillin and clavulanic acid, Trimetoprime and sulfadiazine, Cefalexin, Amoxicillin and clavulanic acid"] <- 1
+sample_data(yass)$sulfonamides[sample_data(yass)$study_condition=="Amoxicillin and clavulanic acid, Trimetoprime and sulfadiazine, Cefalexin, Amoxicillin and clavulanic acid"] <- 1
+sample_data(yass)$cephalosporins[sample_data(yass)$study_condition=="Amoxicillin and clavulanic acid, Trimetoprime and sulfadiazine, Cefalexin, Amoxicillin and clavulanic acid"] <- 1
+  
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Amoxicillin, Amoxicillin and clavulanic acid, Amoxicillin, Amoxicillin and clavulanic acid, Trimetoprime and sulfadiazine, Azithromycin"] <- "multi"
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Amoxicillin, Amoxicillin and clavulanic acid, Amoxicillin, Amoxicillin and clavulanic acid, Trimetoprime and sulfadiazine, Azithromycin"] <- 1
+sample_data(yass)$sulfonamides[sample_data(yass)$study_condition=="Amoxicillin, Amoxicillin and clavulanic acid, Amoxicillin, Amoxicillin and clavulanic acid, Trimetoprime and sulfadiazine, Azithromycin"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Azithromycin, Azithromycin"] <- "macrolides"
+sample_data(yass)$macrolides[sample_data(yass)$study_condition=="Azithromycin, Azithromycin"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Amoxicillin, Amoxicillin"] <- "penicillins"
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Amoxicillin, Amoxicillin"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Cefalexin, Amoxicillin and clavulanic acid"] <- "multi"
+sample_data(yass)$cephalosporins[sample_data(yass)$study_condition=="Cefalexin, Amoxicillin and clavulanic acid"] <-  1
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Cefalexin, Amoxicillin and clavulanic acid"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Cefalexin, Cefalexin, Azithromycin, Amoxicillin"] <- "multi"
+sample_data(yass)$cephalosporins[sample_data(yass)$study_condition=="Cefalexin, Cefalexin, Azithromycin, Amoxicillin"] <- 1
+sample_data(yass)$macrolides[sample_data(yass)$study_condition=="Cefalexin, Cefalexin, Azithromycin, Amoxicillin"] <- 1
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Cefalexin, Cefalexin, Azithromycin, Amoxicillin"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Trimetoprime and sulfadiazine, Azithromycin, Cefaclor"] <- "multi"
+sample_data(yass)$sulfonamides[sample_data(yass)$study_condition=="Trimetoprime and sulfadiazine, Azithromycin, Cefaclor"] <- 1
+sample_data(yass)$macrolides[sample_data(yass)$study_condition=="Trimetoprime and sulfadiazine, Azithromycin, Cefaclor"] <- 1
+sample_data(yass)$cephalosporins[sample_data(yass)$study_condition=="Trimetoprime and sulfadiazine, Azithromycin, Cefaclor"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Systemic antibiotic NAS"] <- "other"
+sample_data(yass)$other[sample_data(yass)$study_condition=="Systemic antibiotic NAS"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Amoxicillin and clavulanic acid, Azithromycin"] <- "multi"
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Amoxicillin and clavulanic acid, Azithromycin"] <- 1
+sample_data(yass)$macrolides[sample_data(yass)$study_condition=="Amoxicillin and clavulanic acid, Azithromycin"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Cefalexin, Cefalexin, Trimetoprime and sulfadiazine"] <- "multi"
+sample_data(yass)$cephalosporins[sample_data(yass)$study_condition=="Cefalexin, Cefalexin, Trimetoprime and sulfadiazine"] <- 1
+sample_data(yass)$sulfonamides[sample_data(yass)$study_condition=="Cefalexin, Cefalexin, Trimetoprime and sulfadiazine"] <- 1
+  
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Amoxicillin, Systemic antibiotic NAS" ] <- "multi"
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Amoxicillin, Systemic antibiotic NAS" ] <- 1
+sample_data(yass)$other[sample_data(yass)$study_condition=="Amoxicillin, Systemic antibiotic NAS" ] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Trimetoprime and sulfadiazine, Trimetoprime and sulfadiazine, Amoxicillin, Amoxicillin"] <- "multi"
+sample_data(yass)$sulfonamides[sample_data(yass)$study_condition=="Trimetoprime and sulfadiazine, Trimetoprime and sulfadiazine, Amoxicillin, Amoxicillin"] <- 1
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Trimetoprime and sulfadiazine, Trimetoprime and sulfadiazine, Amoxicillin, Amoxicillin"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Amoxicillin, Trimetoprime and sulfadiazine, Amoxicillin"] <- "multi"
+sample_data(yass)$penicillins[sample_data(yass)$study_condition=="Amoxicillin, Trimetoprime and sulfadiazine, Amoxicillin"] <- 1
+sample_data(yass)$sulfonamides[sample_data(yass)$study_condition=="Amoxicillin, Trimetoprime and sulfadiazine, Amoxicillin"] <- 1
+
+sample_data(yass)$abx[sample_data(yass)$study_condition=="Cefaclor, Cefalexin"] <- "cephalosporins"
+
+sample_data(yass)$cephalosporins[sample_data(yass)$study_condition=="Cefaclor, Cefalexin"] <- 1
+
+
+sample_data(yass)$abxsum <- sample_data(yass)$penicillins+sample_data(yass)$macrolides+sample_data(yass)$cephalosporins+sample_data(yass)$sulfonamides+sample_data(yass)$other
+sample_data(yass)$multiabx <- 0
+sample_data(yass)$multiabx[sample_data(yass)$abxsum>1] <- 1
+
+```
+
+```{r}
+#ordu = ordinate(yass, "PCoA", "unifrac", weighted=TRUE)
+#plot_ordination(yass, ordu, color="abx", shape="human")
+#plot_ordination(yass, ordu, color="infant_age", shape="human")
+```
+
+## Individual PCOA plots
+
+```{r}
+pcoaPlot <- function(x){
+  dd <- sample_data(yass)$study_condition
+  dd.col <- rainbow(length(dd))
+  names(dd.col)  <- dd
+  subphylo <- prune_samples(sample_data(yass)$subject_id==x, x=yass)
+  ordu <- ordinate(subphylo, "PCoA", "unifrac", weighted=TRUE)
+  plot_ordination(yass, ordu, color="abx", label="infant_age")+geom_point(aes(size=infant_age))
+}
+
+```
+
+```{r}
+subjects <- yass %>% sample_data() %>% data.frame() %>%  arrange(desc(study_condition)) %>% .$subject_id %>% unique()
+lapply(subjects, pcoaPlot)
+```
+
+### Group by age
+
+```{r, warning=FALSE, message=FALSE}
+sample_data(yass)$agecat[sample_data(yass)$infant_age<100] <- "0-99 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=100 & sample_data(yass)$infant_age < 200] <- "100-199 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=200 & sample_data(yass)$infant_age < 300] <- "200-299 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=300 & sample_data(yass)$infant_age < 400] <- "300-399 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=400 & sample_data(yass)$infant_age < 500] <- "400-499 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=500 & sample_data(yass)$infant_age < 600] <- "500-599 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=600 & sample_data(yass)$infant_age < 700] <- "600-699 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=700 & sample_data(yass)$infant_age < 800] <- "700-799 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=800 & sample_data(yass)$infant_age < 900] <- "800-899 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=900 & sample_data(yass)$infant_age < 1000] <- "900-999 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=1000 & sample_data(yass)$infant_age < 1100] <- "x1000-1099 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=1100 & sample_data(yass)$infant_age < 1200] <- "x1100-1199 days"
+sample_data(yass)$agecat[sample_data(yass)$infant_age>=1200 & sample_data(yass)$infant_age < 1300] <- "x1200-1299 days"
+```
+
+Function to plot those abx ordinations but stratified by age category
+
+```{r}
+pcoaPlot <- function(x){
+  subphylo <- prune_samples(sample_data(yass)$agecat==x, x=yass)
+  ordu = ordinate(subphylo, "PCoA", "unifrac", weighted=TRUE)
+  plot = plot_ordination(subphylo, ordu, color="abx", shape="human")
+  return(plot)
+}
+```
+
+```{r}
+agecats <- yass %>% sample_data() %>% .$agecat %>% unique()
+listPlots <- lapply(agecats, pcoaPlot)
+
+n <- length(listPlots)
+nCol <- floor(sqrt(n))
+do.call("grid.arrange", c(listPlots, ncol=nCol))
+```
+
+## PCA on all samples
+
+```{r}
+yasspca <- get_pca(obj=yass, method = "rclr")
+pcaplot1 <- ggordpoint(obj=yasspca, biplot=TRUE,
+                      factorNames=c("agecat"), ellipse=TRUE) +
+            scale_color_manual(values=c("#00AED7", "#FD9347")) +
+            scale_fill_manual(values=c("#00AED7", "#FD9347"))
+pcaplot2 <- ggordpoint(obj=yasspca, pc=c(1, 3), biplot=TRUE,
+                       factorNames=c("agecat"), ellipse=TRUE) +
+            scale_color_manual(values=c("#00AED7", "#FD9347")) +
+            scale_fill_manual(values=c("#00AED7", "#FD9347"))
+pcaplot1 | pcaplot2
+```
+
+```{r}
+{r}
+yasspca <- get_pca(obj=yass, method = "rclr")
+pcaplot1 <- ggordpoint(obj=yasspca, biplot=TRUE,
+                      factorNames=c("agecat"), ellipse=TRUE)
+pcaplot2 <- ggordpoint(obj=yasspca, pc=c(1, 3), biplot=TRUE,
+                       factorNames=c("agecat"), ellipse=TRUE)
+pcaplot1 | pcaplot2
+```
+
+```{r}
+yassrda <- ordinate(yass, method="RDA")
+plot_scree(yassrda) + coord_cartesian(xlim=c(1,25.9))
+```
+
+## PCA on the control samples
+
+Select controls
+
+```{r}
+yasscontrol <- subset_samples(yass, abxexpose==TRUE)
+```
+
+Run PCA
+
+Try normalizing
+
+```{r}
+yasspca <- get_pca(obj=yasscontrol, method="rclr")
+pcaplot1 <- ggordpoint(obj=yasspca, biplot=TRUE,
+                      factorNames=c("agecat"), ellipse=TRUE)
+pcaplot2 <- ggordpoint(obj=yasspca, pc=c(1, 3), biplot=TRUE,
+                       factorNames=c("agecat"), ellipse=TRUE)
+pcaplot1
+pcaplot2
+```
+
+```{r}
+yassrda <- ordinate(yasscontrol, method="RDA")
+plot_scree(yassrda) + coord_cartesian(xlim=c(1,25.9))
+```
+
+## Using the overall PCA plot individuals
+
+```{r}
+yasspca <- ordinate(yass, method="RDA")
+p <- plot_ordination(yass, yasspca, color="abx")
+
+indpca <- function(x){
+  psub <- p
+  psub$data <- psub$data[psub$data$subject_id==x,]
+  psub + geom_point(aes(size=infant_age))
+}
+lapply(subjects, indpca)
+```
+
+# Try modeling some taxa
+
+Figure out when they were exposed to antibiotics exactly
+
+```{r}
+View(sample_data(yass))
+sampYass <- sample_data(yass) %>% data.frame()
+sampYass <- sampYass %>% separate(study_condition,c("sc1","sc2", "sc3", "sc4", "sc5"),sep=",") %>% separate(duration,c("dur1","dur2", "dur3", "dur4", "dur5"), sep=",") %>%  separate(antibiotic_day,c("abday1","abday2", "abday3", "abday4", "abday5"),sep=",")
+sampYass <- sampYass %>% rowwise() %>% mutate(
+  dayssinceabx1 = infant_age - sum(as.numeric(dur1), as.numeric(abday1), na.rm = TRUE),
+  dayssinceabx2 = infant_age - sum(as.numeric(dur2), as.numeric(abday2), na.rm = TRUE),
+  dayssinceabx3 = infant_age - sum(as.numeric(dur3), as.numeric(abday3), na.rm = TRUE),
+  dayssinceabx4 = infant_age - sum(as.numeric(dur4), as.numeric(abday4), na.rm = TRUE),
+  dayssinceabx5 = infant_age - sum(as.numeric(dur5), as.numeric(abday5), na.rm = TRUE))
+
+sampYass$dayssinceabx1[is.na(sampYass$sc1)] <- NA
+sampYass$dayssinceabx2[is.na(sampYass$sc2)] <- NA
+sampYass$dayssinceabx3[is.na(sampYass$sc3)] <- NA
+sampYass$dayssinceabx4[is.na(sampYass$sc4)] <- NA
+sampYass$dayssinceabx5[is.na(sampYass$sc5)] <- NA
+sampYass$dayssinceabx1[sampYass$dayssinceabx1<0] <- 0
+sampYass$dayssinceabx2[sampYass$dayssinceabx2<0] <- 0
+sampYass$dayssinceabx3[sampYass$dayssinceabx3<0] <- 0
+sampYass$dayssinceabx4[sampYass$dayssinceabx4<0] <- 0
+sampYass$dayssinceabx5[sampYass$dayssinceabx5<0] <- 0
+
+View(sampYass)
+hist(sampYass$dayssinceabx2)
+```
+
+Oh no looks like we gotta fix some duplicated abx data entry first
+
+```{r}
+sample_data(yass)$study_condition[sample_data(yass)$sample_id=="SRR8119101"] <- "Amoxicillin, Trimetoprime and sulfadiazine, Azithroymycin"
+sample_data(yass)$antibiotics_day[sample_data(yass)$sample_id=="SRR8119101"] <- "517.429, 517.429, 517.429"
+sample_data(yass)$duration[sample_data(yass)$sample_id=="SRR8119101"] <- "7, 7, 7"
+
+sample_data(yass)$study_condition[sample_data(yass)$sample_id=="SRR8120834"] <- "Trimetoprime and sulfadiazine, Amoxicillin, Amoxicillin"
+sample_data(yass)$antibiotics_day[sample_data(yass)$sample_id=="SRR8120834"] <-  "486.992, 608.74, 700.051"
+sample_data(yass)$duration[sample_data(yass)$sample_id=="SRR8120834"] <- "6, 5, 5"
+
+sample_data(yass)$study_condition[sample_data(yass)$sample_id=="SRR8119766"] <- "Cefalexin, Trimetoprime and sulfadiazine"
+sample_data(yass)$antibiotics_day[sample_data(yass)$sample_id=="SRR8119766"] <-  "639.177, 639.177"
+sample_data(yass)$duration[sample_data(yass)$sample_id=="SRR8119766"] <- "7, 7"
+```
+
+```{r}
+sY <- sample_data(sampYass)
+sample_names(sY) <- sampYass$SampleID
+sample_data(yass) <- sY
+```
+
+We gotta turn this thing into something we can work with
+
+```{r}
+yass
+colnames(tax_table(yass)) <- c("kingdom", "phylum", "class", "order", "family", "genus", "species")
+yassra <-  transform_sample_counts(yass, function(x) x / sum(x) )
+yasstse <- makeTreeSummarizedExperimentFromPhyloseq(yassra)
+yasstse <- agglomerateByRank(yasstse, "phylum")
+yasstidy <- tidy(yasstse, addPheno = TRUE)
+yasstidy %>% group_by(SampleID) %>% summarize(ratotal = sum(value)) #Ensure that relative abundances make sense (all should be 1)
+
+```
+
+Create a data frame filtered for no multiple antibiotics exposure and only ones from the past 31 days
+
+```{r}
+yassfilt <- yasstidy[(yasstidy$dayssinceabx1<31 | is.na(yasstidy$dayssinceabx1)),]
+yassfirm <- yasstidy[yasstidy$gene=="Firmicutes",]
+hist(yassfirm$value)
+hist(yassbact$value)
+```
+
+```{r}
+library(splines)
+mod1 <- lmer(value ~ penicillins + macrolides + cephalosporins + sulfonamides + other + penicillins*sulfonamides + bs(infant_age) + (1|subject_id), data=yassfirm)
+summary(mod1)
+library(lmerTest)
+anova(mod1)
+qqnorm(resid(mod1))
+
+```
+
+```{r}
+mod1 <- lmer(value ~ penicillins + macrolides + cephalosporins + sulfonamides + other + bs(infant_age) + (1|subject_id), data=yassbact)
+summary(mod1)
+summary(mod1)
+library(lmerTest)
+anova(mod1)
+```
+
+Create a function that automates filtering and modeling
+
+```{r}
+taxon_glm <- function(taxon) {
+  yasstaxon <- yassfilt[yassfilt$gene==taxon,]
+  if (yasstaxon$value[1] < 1000) {
+  modfit <- tryCatch(lmer(value ~ penicillins + macrolides + cephalosporins +
+                            sulfonamides + other + bs(infant_age) + (1|subject_id),
+                          data=yasstaxon), 
+                   error=function(e) NULL)
+  fit <- tryCatch((broom::tidy(modfit)), error=function(e) NULL)
+    if (dim(broom::tidy(modfit))[2] > 0) {
+      return(cbind(fit, taxon))
+    }
+  #tryCatch(plot_summs(modfit, model.names=taxon), error=function(e) NULL)
+  #tryCatch(qqnorm(resid(modfit), ylab=taxon), error=function(e) NULL)
+  #tryCatch(qqline(resid(modfit)), error=function(e) NULL)
+  }
+}
+```
+
+Run for all phyla
+
+```{r}
+phyla <- unique(yassfilt$gene)
+lapply(phyla, taxon_glm)
+```
+
+Run for all classes
+
+```{r}
+
+yasstse <- makeTreeSummarizedExperimentFromPhyloseq(yassra)
+yassclass <- agglomerateByRank(yasstse, "class")
+yasstidyclass <- tidy(yassclass, addPheno = TRUE)
+yasstidyclass %>% group_by(SampleID) %>% summarize(ratotal = sum(value))
+yassfilt <- yasstidyclass[(yasstidyclass$dayssinceabx1<31 | is.na(yasstidyclass$dayssinceabx1)) & yasstidyclass$multiabx==0,]
+classes <- unique(yassfilt$gene)
+classmods <- lapply(classes, taxon_glm)
+```
+
+Create synthetic variables for each abx class which is cumulative number of exposures (that time point + all following time points is cumulative number of exposures like macrolides is 1 and then goes to 2)\
