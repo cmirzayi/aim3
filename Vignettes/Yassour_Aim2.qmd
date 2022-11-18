@@ -8,8 +8,8 @@ editor: visual
 ## Antibiotics exposures in the DIABIMMUNE ABx Dataset
 
 ```{r, echo=FALSE, message=FALSE}
-library(dplyr)
 library(mia)
+library(dplyr)
 library(tidymodels)
 library(stringr)
 library(ggplot2)
@@ -19,6 +19,9 @@ library(phyloseq)
 library(vegan)
 library(gridExtra)
 library(jtools)
+library(microViz)
+library(table1)
+library(flextable)
 ```
 
 ### Load-in required data
@@ -40,6 +43,14 @@ yass <- phyloYassour
 phy_tree(yass) <- treeYassour
 ```
 
+## Duplicate samples
+
+```{r}
+yassdd <- ps_dedupe(yass, vars=c("subject_id", "assessment_day"))
+yassdupes <- yass
+yass <- yassdd
+```
+
 ### Calculate Beta diversity at each time point
 
 Let's make a function!
@@ -51,10 +62,10 @@ betaDivPlot <- function(x){
   dd.col <- rainbow(length(dd))
   names(dd.col)  <- dd
   subphylo <- prune_samples(sample_data(yass)$subject_id==x, x=yass)
-  bray <- distance(subphylo, method="bray") %>% as.matrix() %>% as.data.frame()
+  bray <- phyloseq::distance(subphylo, method="bray") %>% as.matrix() %>% as.data.frame()
   bray$sample_id <- colnames(bray)
   phylosamp <- sample_data(yass) %>% data.frame()
-  joined <- inner_join (phylosamp, bray)
+  joined <- dplyr::inner_join (phylosamp, bray)
   minsamp <- joined %>% filter(infant_age==min(infant_age)) %>% select(sample_id) %>% .[1,1]
   joinsub <- joined %>% select(sample_id, infant_age, study_condition, braycurtis=all_of(minsamp)) %>% arrange(infant_age)
   joinsub$study_condition[is.na(joinsub$study_condition)] <- "no abx"
@@ -98,10 +109,10 @@ betaDivPlotLeft <- function(x){
   dd.col <- rainbow(length(dd))
   names(dd.col)  <- dd
   subphylo <- prune_samples(sample_data(yassleft)$subject_id==x, x=yassleft)
-  bray <- distance(subphylo, method="bray") %>% as.matrix() %>% as.data.frame()
+  bray <- phyloseq::distance(subphylo, method="bray") %>% as.matrix() %>% as.data.frame()
   bray$sample_id <- colnames(bray)
   phylosamp <- sample_data(yassleft) %>% data.frame()
-  joined <- inner_join (phylosamp, bray)
+  joined <- dplyr::inner_join (phylosamp, bray)
   minsamp <- joined %>% filter(infant_age==min(infant_age)) %>% select(sample_id) %>% .[1,1]
   joinsub <- joined %>% select(sample_id, infant_age, study_condition, braycurtis=all_of(minsamp)) %>% arrange(infant_age)
   joinsub$study_condition[is.na(joinsub$study_condition)] <- "no abx"
@@ -134,7 +145,7 @@ Calculate dissimilarity over time for each subject
 Determine study condition and add to sample_data()
 
 ```{r}
-library(microViz)
+
 studyconds <- sample_data(yass) %>% group_by(subject_id) %>% summarize(subject_id=dplyr::first(subject_id), abxexpose = n_distinct(study_condition)>1)
 
 yass <- ps_join(yass, studyconds)
@@ -146,10 +157,10 @@ betaValues <- function(x){
   dd.col <- rainbow(length(dd))
   names(dd.col)  <- dd
   subphylo <- prune_samples(sample_data(yass)$subject_id==x, x=yass)
-  bray <- distance(subphylo, method="bray") %>% as.matrix() %>% as.data.frame()
+  bray <- phyloseq::distance(subphylo, method="bray") %>% as.matrix() %>% as.data.frame()
   bray$sample_id <- colnames(bray)
   phylosamp <- sample_data(yass) %>% data.frame()
-  joined <- inner_join (phylosamp, bray)
+  joined <- dplyr::inner_join (phylosamp, bray)
   minsamp <- joined %>% filter(infant_age==max(infant_age)) %>% select(sample_id) %>% .[1,1]
   joinsub <- joined %>% select(subject_id, sample_id, infant_age, agecat, study_condition, abxexpose, braycurtis=all_of(minsamp)) %>% arrange(infant_age)
   joinsub$study_condition[is.na(joinsub$study_condition)] <- "no abx"
@@ -179,6 +190,8 @@ dfValues <- as.data.frame(do.call(rbind, listValues)) %>% arrange(infant_age)
 plotValues <- dfValues %>% group_by(abxexpose, agecat) %>% summarize(bc=mean(braycurtis))
 
 ggplot(data=plotValues, aes(x=agecat, y=bc)) + geom_line(aes(group=abxexpose, color=abxexpose))+ scale_x_discrete(labels = function(x) str_wrap(x, width = 0.01))
+#90% band?
+#PERMANOVA (adonis, vegan)
 ```
 
 Calculate average dissimilarity for each time category
@@ -187,7 +200,7 @@ Select a time point then calculate average within participant dissimilarity with
 
 ```{r}
 t1cases <- prune_samples(sample_data(yass)$agecat=="800-899 days" & sample_data(yass)$abxexpose==TRUE, x=yass)
-brayt1cases <- distance(t1cases, method="bray") %>% as.matrix()
+brayt1cases <- phyloseq::distance(t1cases, method="bray") %>% as.matrix()
 brayt1cases %>% mean()
 
 ```
@@ -199,10 +212,10 @@ avgBetaDivPlot <- function(x){
   dd.col <- rainbow(length(dd))
   names(dd.col)  <- dd
   subphylo <- prune_samples(sample_data(yass)$subject_id==x, x=yass)
-  bray <- distance(subphylo, method="bray") %>% as.matrix() %>% as.data.frame()
+  bray <- phyloseq::distance(subphylo, method="bray") %>% as.matrix() %>% as.data.frame()
   bray$sample_id <- colnames(bray)
   phylosamp <- sample_data(yass) %>% data.frame()
-  joined <- inner_join (phylosamp, bray)
+  joined <- dplyr::inner_join (phylosamp, bray)
   minsamp <- joined %>% filter(infant_age==min(infant_age)) %>% select(sample_id) %>% .[1,1]
   joinsub <- joined %>% select(sample_id, infant_age, study_condition, braycurtis=all_of(minsamp)) %>% arrange(infant_age)
   joinsub$study_condition[is.na(joinsub$study_condition)] <- "no abx"
@@ -453,23 +466,19 @@ do.call("grid.arrange", c(listPlots, ncol=nCol))
 ## PCA on all samples
 
 ```{r}
+library(MicrobiotaProcess)
 yasspca <- get_pca(obj=yass, method = "rclr")
 pcaplot1 <- ggordpoint(obj=yasspca, biplot=TRUE,
-                      factorNames=c("agecat"), ellipse=TRUE) +
-            scale_color_manual(values=c("#00AED7", "#FD9347")) +
-            scale_fill_manual(values=c("#00AED7", "#FD9347"))
+                      factorNames=c("abx"), ellipse=TRUE) + theme(legend.position = "none")
 pcaplot2 <- ggordpoint(obj=yasspca, pc=c(1, 3), biplot=TRUE,
-                       factorNames=c("agecat"), ellipse=TRUE) +
-            scale_color_manual(values=c("#00AED7", "#FD9347")) +
-            scale_fill_manual(values=c("#00AED7", "#FD9347"))
+                       factorNames=c("abx"), ellipse=TRUE)
 pcaplot1 | pcaplot2
 ```
 
 ```{r}
-{r}
 yasspca <- get_pca(obj=yass, method = "rclr")
 pcaplot1 <- ggordpoint(obj=yasspca, biplot=TRUE,
-                      factorNames=c("agecat"), ellipse=TRUE)
+                      factorNames=c("agecat"), ellipse=TRUE) + theme(legend.position = "none")
 pcaplot2 <- ggordpoint(obj=yasspca, pc=c(1, 3), biplot=TRUE,
                        factorNames=c("agecat"), ellipse=TRUE)
 pcaplot1 | pcaplot2
@@ -478,6 +487,8 @@ pcaplot1 | pcaplot2
 ```{r}
 yassrda <- ordinate(yass, method="RDA")
 plot_scree(yassrda) + coord_cartesian(xlim=c(1,25.9))
+
+yasspcs <- scores(yassrda)$sites
 ```
 
 ## PCA on the control samples
@@ -526,7 +537,6 @@ lapply(subjects, indpca)
 Figure out when they were exposed to antibiotics exactly
 
 ```{r}
-View(sample_data(yass))
 sampYass <- sample_data(yass) %>% data.frame()
 sampYass <- sampYass %>% separate(study_condition,c("sc1","sc2", "sc3", "sc4", "sc5"),sep=",") %>% separate(duration,c("dur1","dur2", "dur3", "dur4", "dur5"), sep=",") %>%  separate(antibiotic_day,c("abday1","abday2", "abday3", "abday4", "abday5"),sep=",")
 sampYass <- sampYass %>% rowwise() %>% mutate(
@@ -547,7 +557,6 @@ sampYass$dayssinceabx3[sampYass$dayssinceabx3<0] <- 0
 sampYass$dayssinceabx4[sampYass$dayssinceabx4<0] <- 0
 sampYass$dayssinceabx5[sampYass$dayssinceabx5<0] <- 0
 
-View(sampYass)
 hist(sampYass$dayssinceabx2)
 ```
 
@@ -573,11 +582,198 @@ sample_names(sY) <- sampYass$SampleID
 sample_data(yass) <- sY
 ```
 
+Add alpha diversity and PCs to the phyloseq object
+
+```{r}
+alpha <- estimate_richness(yass)
+alpha$sample_id <- rownames(alpha)
+head(alpha)
+head(sample_data(yass))
+library(microViz)
+yass <- ps_join(yass, alpha)
+
+yasspca <- ordinate(yass, method = "RDA")
+yasspcs <- scores(yasspca)$sites
+yasspcs <- data.frame(yasspcs)
+yasspcs$sample_id <- rownames(yasspcs)
+
+yass <- ps_join(yass, yasspcs) # We have the PCs but need to lag them
+
+sY <- data.frame(sample_data(yass))
+sY <- sY %>% dplyr::arrange(subject_id, infant_age) %>% group_by(subject_id) %>% mutate(prevShannon=lag(Shannon), prevPC1=lag(PC1), prevPC2=lag(PC2))
+sY$prevShannon[is.na(sY$prevShannon)] <- sY$Shannon[is.na(sY$prevShannon)]
+sY$prevPC1[is.na(sY$prevPC1)] <- sY$PC1[is.na(sY$prevPC1)]
+sY$prevPC2[is.na(sY$prevPC2)] <- sY$PC2[is.na(sY$prevPC2)]
+sYreduc <- sY %>% select(sample_id, prevShannon, prevPC1, prevPC2)
+yass <- ps_join(yass, sYreduc)
+
+sample_data(yass) %>% View()
+
+```
+
 We gotta turn this thing into something we can work with
+
+## Limma
+
+```{r}
+library(limma)
+library(microbiome)
+library(phylosmith)
+library(splines)
+
+#voom transformation
+
+design <-model.matrix(~penicillins + macrolides + cephalosporins +
+                        sulfonamides + other + bs(infant_age) + prevShannon + 
+                        penicillins*prevShannon + macrolides*prevShannon + 
+                        cephalosporins*prevShannon + sulfonamides*prevShannon +
+                        penicillins*prevPC1 + macrolides*prevPC1 + 
+                        cephalosporins*prevPC1 + sulfonamides*prevPC1 +
+                        penicillins*prevPC2 + macrolides*prevPC2 + 
+                        cephalosporins*prevPC2 + sulfonamides * prevPC2
+                        , dfyass)
+otu <- abundances(microbiome::transform(yass, "log10"))
+meta <- meta(yass)
+
+library(edgeR)
+
+yassfilt <- yass %>% taxa_filter( frequency=0.05)
+d <- abundances(yassfilt)
+
+y <- voom(d, design, plot = TRUE)
+
+cor <- duplicateCorrelation(y, design, block=dfyass$subject_id)
+fit <- lmFit(y, design, block=dfyass$subject_id, correlation = cor$consensus.correlation)
+fit <- eBayes(fit)
+
+pvals <- data.frame(fit$p.value)
+pvals <- cbind(pvals, oldname=rownames(pvals))
+inner_join(pvals, yasstax) %>% View()
+
+ # Limma effect sizes
+efs.limma <-  fit$coefficients[, "penicillins"]
+
+# Summarise
+library(kableExtra)
+pen <- cbind(topTable(fit, coef=2, p.value=0.05, number=1000), oldname=rownames(topTable(fit, coef=2, p.value=0.05, number=1000)))
+
+inner_join(yasstax, pen) %>% View()
+```
+
+Results function
+
+```{r}
+library(ggthemes)
+vesuvius <- function(x){
+  nametable <- cbind(topTable(fit, coef=x, p.value=0.05, number=1000), oldname=rownames(topTable(fit, coef=x, p.value=0.05, number=1000)))
+  
+nametable <- inner_join(yasstax, nametable)
+nametable$Rank7[nametable$Rank7=="none"] <- NA
+nametable$Rank6[nametable$Rank6=="none"] <- NA
+nametable$Rank5[nametable$Rank5=="none"] <- NA
+nametable$famnew <- paste0("f_", nametable$Rank5)
+nametable$Rank4[nametable$Rank4=="none"] <- NA
+nametable$ordnew <- paste0("o_", nametable$Rank4)
+nametable$Rank3[nametable$Rank3=="none"] <- NA
+nametable$clanew <- paste0("c_", nametable$Rank3)
+nametable$Rank2[nametable$Rank2=="none"] <- NA
+nametable$phynew <- paste0("p_", nametable$Rank2)
+nametable$Rank1[nametable$Rank1=="none"] <- NA
+nametable$kinnew <- paste0("k_", nametable$Rank1)
+
+nametable$specgen <- paste0("g_", nametable$Rank6, "_s_", nametable$Rank7) %>% str_replace(pattern="g__s_NA", "") %>% str_replace(pattern="_s_NA", "") %>% str_replace(pattern="g_NA", "")
+nametable$specgen[nametable$specgen==""] <- NA
+nametable$famnew[nametable$famnew=="f_NA"] <- NA
+nametable$ordnew[nametable$ordnew=="o_NA"] <- NA
+nametable$clanew[nametable$clanew=="c_NA"] <- NA
+
+nametable <- nametable %>% mutate(newname=coalesce(specgen, famnew, ordnew, clanew, phynew, kinnew))
+
+ggplot(data=nametable, aes(x=logFC, y=-log10(adj.P.Val), label=newname)) + geom_point() + ggrepel::geom_text_repel()+theme_clean()
+}
+
+vesuvius(x=2)+ggtitle("Penicillins")
+vesuvius(x=3)+ggtitle("Macrolides")
+vesuvius(x=4)+ggtitle("Cephalosporins")
+vesuvius(x=5)+ggtitle("Sulfonamides")
+
+vesuvius(x=13)+ggtitle("Penicillins x lagged Shannon")
+vesuvius(x=14)+ggtitle("Macrolides x lagged Shannon")
+vesuvius(x=15)+ggtitle("Cephalosporins x lagged Shannon")
+vesuvius(x=16)+ggtitle("Sulfonamides x lagged Shannon")
+
+vesuvius(x=17)+ggtitle("Penicillins x lagged PC1")
+vesuvius(x=18)+ggtitle("Macrolides x lagged PC1")
+vesuvius(x=19)+ggtitle("Cephalosporins x lagged PC1")
+vesuvius(x=20)+ggtitle("Sulfonamides x lagged PC1")
+
+vesuvius(x=21)+ggtitle("Penicillins x lagged PC2")
+vesuvius(x=22)+ggtitle("Macrolides x lagged PC2")
+vesuvius(x=23)+ggtitle("Cephalosporins x lagged PC2")
+vesuvius(x=24)+ggtitle("Sulfonamides x lagged PC2")
+```
+
+```{r}
+
+plot(fit$coefficients[,2], fit$coefficients[,13])
+vesuvius <- function(x){
+  nametable <- cbind(topTable(fit, coef=x, p.value=0.05, number=1000), oldname=rownames(topTable(fit, coef=x, p.value=0.05, number=1000)))
+  
+nametable <- inner_join(yasstax, nametable)
+nametable$Rank7[nametable$Rank7=="none"] <- NA
+nametable$Rank6[nametable$Rank6=="none"] <- NA
+nametable$Rank5[nametable$Rank5=="none"] <- NA
+nametable$famnew <- paste0("f_", nametable$Rank5)
+nametable$Rank4[nametable$Rank4=="none"] <- NA
+nametable$ordnew <- paste0("o_", nametable$Rank4)
+nametable$Rank3[nametable$Rank3=="none"] <- NA
+nametable$clanew <- paste0("c_", nametable$Rank3)
+nametable$Rank2[nametable$Rank2=="none"] <- NA
+nametable$phynew <- paste0("p_", nametable$Rank2)
+nametable$Rank1[nametable$Rank1=="none"] <- NA
+nametable$kinnew <- paste0("k_", nametable$Rank1)
+
+nametable$specgen <- paste0("g_", nametable$Rank6, "_s_", nametable$Rank7) %>% str_replace(pattern="g__s_NA", "") %>% str_replace(pattern="_s_NA", "") %>% str_replace(pattern="g_NA", "")
+nametable$specgen[nametable$specgen==""] <- NA
+nametable$famnew[nametable$famnew=="f_NA"] <- NA
+nametable$ordnew[nametable$ordnew=="o_NA"] <- NA
+nametable$clanew[nametable$clanew=="c_NA"] <- NA
+
+nametable <- nametable %>% mutate(newname=coalesce(specgen, famnew, ordnew, clanew, phynew, kinnew))
+
+ggplot(data=nametable, aes(x=logFC, y=-log10(adj.P.Val), label=newname)) + geom_point() + ggrepel::geom_text_repel()+theme_clean()
+}
+```
+
+Correlation plot between different antibiotic families
+
+```{r}
+library(corrplot)
+
+corrplot(cor(fit$coefficients[,13:24]), method="square")
+```
+
+```{r}
+# Interaction model between commonly coprescribed abx
+```
+
+```{r}
+# Scatterplots of coefficients
+```
+
+```{r}
+qqt(fit$t[, 10], df = fit$df.residual + fit$df.prior); abline(0,1)
+```
+
+Limma results for penicillins
+
+```{r}
+volcanoplot(fit, coef=2, highlight=10)
+```
 
 ```{r}
 yass
-colnames(tax_table(yass)) <- c("kingdom", "phylum", "class", "order", "family", "genus", "species")
+colnames(phyloseq::tax_table(yass)) <- c("kingdom", "phylum", "class", "order", "family", "genus", "species")
 yassra <-  transform_sample_counts(yass, function(x) x / sum(x) )
 yasstse <- makeTreeSummarizedExperimentFromPhyloseq(yassra)
 yasstse <- agglomerateByRank(yasstse, "phylum")
@@ -592,25 +788,20 @@ Create a data frame filtered for no multiple antibiotics exposure and only ones 
 yassfilt <- yasstidy[(yasstidy$dayssinceabx1<31 | is.na(yasstidy$dayssinceabx1)),]
 yassfirm <- yasstidy[yasstidy$gene=="Firmicutes",]
 hist(yassfirm$value)
-hist(yassbact$value)
 ```
 
 ```{r}
+# Try modeling Shannon
+# Try out limma and see if I can fit models in that
+library(lme4)
 library(splines)
 mod1 <- lmer(value ~ penicillins + macrolides + cephalosporins + sulfonamides + other + penicillins*sulfonamides + bs(infant_age) + (1|subject_id), data=yassfirm)
 summary(mod1)
 library(lmerTest)
+library(broom.mixed)
 anova(mod1)
 qqnorm(resid(mod1))
 
-```
-
-```{r}
-mod1 <- lmer(value ~ penicillins + macrolides + cephalosporins + sulfonamides + other + bs(infant_age) + (1|subject_id), data=yassbact)
-summary(mod1)
-summary(mod1)
-library(lmerTest)
-anova(mod1)
 ```
 
 Create a function that automates filtering and modeling
@@ -623,8 +814,8 @@ taxon_glm <- function(taxon) {
                             sulfonamides + other + bs(infant_age) + (1|subject_id),
                           data=yasstaxon), 
                    error=function(e) NULL)
-  fit <- tryCatch((broom::tidy(modfit)), error=function(e) NULL)
-    if (dim(broom::tidy(modfit))[2] > 0) {
+  fit <- tryCatch((broom.mixed::tidy(modfit)), error=function(e) NULL)
+    if (dim(broom.mixed::tidy(modfit))[2] > 0) {
       return(cbind(fit, taxon))
     }
   #tryCatch(plot_summs(modfit, model.names=taxon), error=function(e) NULL)
@@ -634,14 +825,17 @@ taxon_glm <- function(taxon) {
 }
 ```
 
-Run for all phyla
+### Phyla Models
 
 ```{r}
 phyla <- unique(yassfilt$gene)
 lapply(phyla, taxon_glm)
+
+## calculate fdr (q<0.2)
+## rank and look at estimates
 ```
 
-Run for all classes
+### Class Models
 
 ```{r}
 
@@ -654,4 +848,49 @@ classes <- unique(yassfilt$gene)
 classmods <- lapply(classes, taxon_glm)
 ```
 
-Create synthetic variables for each abx class which is cumulative number of exposures (that time point + all following time points is cumulative number of exposures like macrolides is 1 and then goes to 2)\
+Create synthetic variables for each abx class which is cumulative number of exposures (that time point + all following time points is cumulative number of exposures like macrolides is 1 and then goes to 2)
+
+## Table 1 Descriptive Stats
+
+### Antibiotics exposures
+
+```{r}
+sample_data(yass)$abx
+dfyass <- data.frame(sample_data(yass))
+dfyass$abxcondition[dfyass$abxexpose==TRUE]<-"Antibiotics Exposed"
+dfyass$abxcondition[dfyass$abxexpose==FALSE]<-"Unexposed"
+
+
+shannon <- phyloseq::estimate_richness(yass, measure="shannon")
+shannon$X.SampleID <- rownames(shannon)
+dfyass <- inner_join(dfyass, shannon)
+
+
+participants <- dfyass %>% group_by(subject_id) %>%
+  summarize(`Birth Year`=first(Year.of.birth), 
+            Country=first(Country), 
+            Gender=first(Gender), 
+            `Delivery Mode`=first(Delivery.type),
+            `Gestational Age`=first(Gestational.age),
+            Gender = first(gender),
+            `Antibiotics Exposure`=first(abxcondition),
+            `Shannon Alpha Diversity`=first(Shannon),
+            `Assessments Completed`=n(),
+            `# of Antibiotic Courses`=sum(!is.na(sc1))+
+              sum(!is.na(sc2))+
+              sum(!is.na(sc3))+
+              sum(!is.na(sc4))+
+              sum(!is.na(sc5)))
+
+participants$`Birth Year` <- factor(participants$`Birth Year`)
+participants$`Gender` <- factor(participants$`Gender`)
+participants$`Country` <- factor(participants$`Country`)
+participants$`Delivery Mode` <- factor(participants$`Delivery Mode`)
+participants$`Antibiotics Exposure` <- factor(participants$`Antibiotics Exposure`)
+
+table1(~ `Assessments Completed` + `# of Antibiotic Courses` + `Birth Year` + Gender + `Delivery Mode` + `Shannon Alpha Diversity`| `Antibiotics Exposure`, data=participants) %>% t1flex() %>% save_as_docx(path="table1.docx")
+```
+
+```{r}
+
+```
