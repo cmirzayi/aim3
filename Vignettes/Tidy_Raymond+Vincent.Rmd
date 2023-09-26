@@ -1,85 +1,99 @@
 ---
-title: "Vincent + Raymond Second Attempt"
-output: html_notebook
+title: "Tidymodels: Vincent + Raymond"
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_float: false
+    toc_depth: 3
+  BiocStyle::pdf_document:
+    toc: true
+    toc_float: false
+    toc_depth: 3
 ---
 
-# Load required packages
 
-SIAMCAT is used for analysis
-
+# Load packages
+tidymodels is used for this analysis.
 ```{r}
-library(curatedMetagenomicData)
-library(dplyr)
-library(mia)
-library(tidymodels)
-library(stringr)
-library(ggplot2)
-library(dotwhisker)
-library(biobroom)
+suppressPackageStartupMessages({
+    library(curatedMetagenomicData)
+    library(dplyr)
+    library(mia)
+    library(tidymodels)
+    library(stringr)
+    library(ggplot2)
+    library(dotwhisker)
+    library(biobroom)
+})
 ```
 
-# Filter cMD metadata table for Vincent and Raymond
+# Load training datasets
+## The number of samples
+Filter cMD metadata table for Vincent and Raymond.
 ```{r}
 meta <- curatedMetagenomicData::sampleMetadata
-meta$study_name %>% table()
-
-submeta <- meta %>% filter(study_name=="VincentC_2016" | study_name=="RaymondF_2016")
+submeta <- meta %>% 
+    filter(study_name == "VincentC_2016" | study_name == "RaymondF_2016")
 submeta$study_name %>% table()
 ```
 
-# Download data from cMD for matching metadata
+## Download data 
 Table should match the metadata table
 ```{r}
 rayvince <- returnSamples(submeta, "relative_abundance")
 colData(rayvince)$study_name %>% table()
 ```
 
-# Proportions in cMD are presented as percentages. Need to be decimals. Divide by 100.
+Proportions in cMD are presented as percentages.
+Need to be decimals. Divide by 100.
 ```{r}
 assay(rayvince) <- assay(rayvince)/100
 ```
 
-#Subset to just Raymond post-exposure cases
-
-There should be 24 data points (18 cases, 6 controls)
+## Subset 
+We subset downloaded data to just Raymond post-exposure cases.
+There should be 24 data points (= 18 cases + 6 controls).
 ```{r}
-ray <- subset(rayvince, select =colData(rayvince)$study_name=="RaymondF_2016")
-#ray <- subset(rayvince, select =colData(rayvince)$study_name=="RaymondF_2016" &
-              #  colData(rayvince)$days_from_first_collection == 7)
+ray <- subset(rayvince,
+              select = colData(rayvince)$study_name == "RaymondF_2016")
+# ray <- subset(rayvince, 
+#               select = colData(rayvince)$study_name == "RaymondF_2016" & 
+#                   colData(rayvince)$days_from_first_collection == 7)
+# colData(ray)$study_name %>% table()
 
-colData(ray)$study_name %>% table()
-```
-
-```{r}
 raytidy <- tidy(ray, addPheno = TRUE)
 raytidy$study_condition <- raytidy$study_condition %>% as.factor()
 raywide <- pivot_wider(raytidy, names_from = gene, values_from = value)
-ray7only <- raywide[raywide$days_from_first_collection==7,] # 7 days from collection only
+ray7only <- raywide[raywide$days_from_first_collection == 7,] # 7 days from collection only
 ```
 
 
-# Try it with just a plain regression
-```{r}
-rayglm <- glm(study_condition ~ `class:Bacteroidia`, data = rayclasswide,
-              family=binomial(link="logit"))
+# Modeling
+## Plain regression
+```{r eval=FALSE}
+##### Where is the `rayclasswide` object? <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+rayglm <- glm(study_condition ~ `class:Bacteroidia`, 
+              data = rayclasswide,
+              family = binomial(link = "logit"))
 tidy(rayglm)
 ```
 
-# Compare to tidymodels regression results, results should be identical
-
-```{r}
-
+## Tidymodel
+Compare to tidymodels regression results, results should be identical
+```{r eval=FALSE}
 lm_mod <- logistic_reg() %>% set_engine("glm")
-lm_fit <- lm_mod %>% fit(study_condition ~ `class:Bacteroidia`, data=rayclasswide)
+lm_fit <- lm_mod %>% fit(study_condition ~ `class:Bacteroidia`, 
+                         data = rayclasswide)
 tidy(lm_fit)
 ```
 
-It's really bad. Probably need to do some resampling and maybe not agglomerate to class
+It's really bad. Probably need to do some resampling and maybe not agglomerate to class.
 ```{r}
 # Select only the microbiome vars
-raysub<- raywide %>% select(c("study_condition", "subject_id", "age", "gender",
-                              "BMI", "days_from_first_collection",
-                              starts_with("k__")))
+raysub <- raywide %>% select(c("study_condition", "subject_id", "age", "gender",
+                               "BMI", "days_from_first_collection",
+                               starts_with("k__")))
 set.seed(732981)
 raysplit <- initial_split(raysub)
 raytrain <- training(raysplit)
@@ -97,21 +111,23 @@ rf_testing_pred <-
   predict(rf_fit, raytest) %>% 
   bind_cols(predict(rf_fit, raytest, type = "prob")) %>% 
   bind_cols(raytest %>% select(study_condition))
-rf_testing_pred %>%                   # test set predictions
+
+# test set predictions
+rf_testing_pred %>%
     roc_auc(truth = study_condition, estimate=.pred_cephalosporins)
-rf_testing_pred %>%                   # test set predictions
-  accuracy(truth = study_condition, .pred_class)
+
+rf_testing_pred %>% 
+    accuracy(truth = study_condition, .pred_class)
 ```
 
 ```{r}
-folds <- group_vfold_cv(raytrain, v= 6, group="subject_id")
-rf_wf <- 
-  workflow() %>%
-  add_model(rf_mod) %>%
-  add_formula(study_condition ~ .)
-rf_fit_rs <- 
-  rf_wf %>% 
-  fit_resamples(folds)
+folds <- group_vfold_cv(raytrain, v = 6, group = "subject_id")
+rf_wf <- workflow() %>% 
+    add_model(rf_mod) %>%
+    add_formula(study_condition ~ .)
+rf_fit_rs <- rf_wf %>% 
+    fit_resamples(folds)
+
 collect_metrics(rf_fit_rs)
 ```
 

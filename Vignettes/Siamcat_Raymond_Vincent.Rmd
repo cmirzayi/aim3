@@ -1,0 +1,434 @@
+---
+title: "ABX R21 Preliminary Analysis"
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_float: false
+    toc_depth: 3
+  BiocStyle::pdf_document:
+    toc: true
+    toc_float: false
+    toc_depth: 3
+abstract: "SIAMCAT: Vincent + Raymond (This vignette is part of Chloe's thesis Aim3.)"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, collapse = TRUE, eval=FALSE)
+```
+
+# Intro
+**Develop and evaluate the prediction models for recent antibiotics usage**    
+Researchers often exclude participants with recent antibiotic use, but this may introduce selection bias by excluding the least healthy individuals. *We hypothesize that antibiotic usage can be detected from the current microbiome status using the prediction models trained on microbiome datasets with recent antibiotics exposure.* We will construct the prediction models and test how well they can infer probable antibiotic exposure from the gut microbiome. Using prediction models from this aim, researchers can stratify analyses or include participants who may have otherwise been excluded from the study.
+
+## Load packages
+SIAMCAT is used for this analysis.
+```{r}
+suppressPackageStartupMessages({
+    library(curatedMetagenomicData)
+    library(dplyr)
+    library(mia)
+    library(SIAMCAT)
+    library(stringr)
+    library(ggplot2)
+})
+```
+
+## Load training datasets
+### The number of samples
+Filter cMD metadata table for Vincent and Raymond.
+```{r}
+meta <- curatedMetagenomicData::sampleMetadata
+submeta <- meta %>% 
+    filter(study_name == "VincentC_2016" | study_name == "RaymondF_2016")
+submeta$study_name %>% table()
+```
+
+### Download data 
+Table should match the metadata table
+```{r}
+rayvince <- returnSamples(submeta, "relative_abundance")
+colData(rayvince)$study_name %>% table()
+```
+
+Proportions in cMD are presented as percentages.
+Need to be decimals. Divide by 100.
+```{r}
+assay(rayvince) <- assay(rayvince)/100
+```
+
+
+
+# Raymond dataset
+## Data cleaning
+We subset downloaded data to just Raymond (post-exposure) cases.
+If we choose only the data from 7 days from the first collection, there should 
+be 24 data points (= 18 cases + 6 controls).    
+
+[Question] Are we sure all NA is a control? <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+```{r}
+ray <- subset(rayvince,
+              select = colData(rayvince)$study_name == "RaymondF_2016") # 72 Raymond samples
+# ray <- subset(rayvince, 
+#               select = colData(rayvince)$study_name == "RaymondF_2016" & 
+#                   colData(rayvince)$days_from_first_collection == 7)
+# colData(ray)$study_name %>% table()
+colData(ray)$antibiotics_family %>% table()
+
+phyloray <- makePhyloseqFromTreeSummarizedExperiment(ray, abund_values = "relative_abundance")
+```
+
+Not sure that this is necessary. I think SIAMCAT can just read the phyloseq object.
+```{r}
+# Extract sample and relative abundance tables
+sample.phyloray <- sample_data(phyloray)
+feat.phyloray <- otu_table(phyloray)
+```
+
+Remove two variables that are identical with condition of interest as 
+they were causing issues down the line.
+```{r}
+## Remove duplicate variables
+rm_ind <- which(names(sample.phyloray) %in% c("antibiotics_family", "antibiotics_current_use"))
+sample.phyloray <- sample.phyloray[, -rm_ind]
+```
+
+
+## Prepare modeling
+```{r}
+## Set variable of interest
+label.ray <- create.label(meta = sample.phyloray, 
+                          label = "study_condition", 
+                          case = "cephalosporins")
+
+## Create SIAMCAT object
+sc.obj <- siamcat(feat = feat.phyloray, 
+                  label = label.ray, 
+                  meta = sample.phyloray)
+
+## Filter by abundance
+## Cutoff is set at 0.001. Might want to experiment with this.
+sc.filt <- filter.features(sc.obj, filter.method = "abundance", cutoff = 0.001)
+
+## Check associations
+## Older version of SIAMCAT <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+# sc.assc <- check.associations(
+#     sc.filt,
+#     sort.by = "fc",
+#     alpha = 0.05,
+#     fn.plot = "assocation_plots.pdf",
+#     mult.corr = "fdr",
+#     feature.type = "filtered",
+#     detect.lim = 10^-6,
+#     plot.type = "quantile.box",
+#     panels = c("fc", "prevalence", "auroc")
+# )
+
+system.time(sc.assc <- check.associations(
+    sc.filt,
+    test = "lm",
+    ## All default values
+    # formula = "feat~label",
+    # alpha = 0.05,
+    # mult.corr = "fdr",
+    # log.n0 = 1e-06,
+    # pr.cutoff = 1e-06,
+    # paired = NULL,
+    feature.type = "filtered"
+))
+```
+
+Here, we check the confounders. This step doesn't work if any variable 
+completely matches the condition of interest, which is why we removed those 
+two other variables earlier.
+
+```{r warning=FALSE}
+## Check confounders
+sc.conf <- check.confounders(sc.filt,
+                             fn.plot = "confounder_plots.pdf",
+                             meta.in = NULL,
+                             feature.type = "filtered", 
+                             verbose = 1)
+```
+
+I'm guessing due to the ranked unit normalization this is using Rankits.   
+*[From Wikipedia] In statistics, rankits of a set of data are the expected values of the order statistics of a sample from the standard normal distribution the same size as the data. They are primarily used in the normal probability plot, a graphical technique for normality testing.*
+
+```{r}
+## Normalization
+sc.norm <- normalize.features(sc.filt, norm.method = "rank.unit")
+```
+
+## Machine Learning
+Split the data. Not sure what the difference is between 'folds' and 'resample',
+and how to select the right number. Right now I just picked numbers that didn't 
+give an error message.
+
+```{r}
+sc.split <- create.data.split(sc.norm,
+                              num.folds = 6,
+                              num.resample = 2,
+                              inseparable = "subject_id")
+```
+
+```{r}
+## Random Forest
+## Lasso also seems to work - others gave weird results (weird ROCs).
+system.time(sc.mod <- train.model(sc.split, 
+                                  method = "randomForest")) # this takes 4~5 min
+
+sc.pred <- make.predictions(sc.mod)
+pred_matrix <- pred_matrix(sc.pred)
+```
+
+## Plots
+### View ROC and PR curve
+```{r}
+sc.eval <- evaluate.predictions(sc.pred)
+model.evaluation.plot(sc.eval)
+```
+
+### Prediction Spaghetti Plots
+```{r}
+library(stringr)
+spag <- data.frame(pred_matrix, 
+                   days = rownames(pred_matrix) %>% 
+                       str_extract(pattern = "[EC]\\w*") %>% 
+                       str_sub(start = 2) %>% 
+                       as.integer(), 
+                   subj = rownames(pred_matrix) %>% str_extract("[P]\\d{1,2}"))
+
+colnames(spag) <- c("Predicted Probability", "CV_rep2", "Days", "subj")
+
+ggplot(data = spag) + 
+    geom_line(aes(x = Days, y = `Predicted Probability`, group = subj, color = subj)) +
+    geom_boxplot(aes(x = Days, y = `Predicted Probability`, group = Days, alpha = 1)) + 
+    theme_minimal() +  
+    theme(legend.position = "none")
+```
+
+Export final model interpretation plot as PDF
+```{r warning=FALSE}
+model.interpretation.plot(
+    sc.eval,
+    fn.plot = "interpretation.pdf",
+    consens.thres = 0.01,
+    limits = c(-3, 3),
+    heatmap.type = "zscore"
+)
+```
+
+
+
+
+
+
+# Vincent dataset
+## Data cleaning
+```{r}
+## Subset
+vince <- subset(rayvince, 
+                select = colData(rayvince)$study_name == "VincentC_2016")
+
+colData(vince)$abx <- colData(vince)$antibiotics_family
+colData(vince)$abx[which(is.na(colData(vince)$abx))] <- "control"
+
+abx_ls <- c("carbapenems", "cephalosporins", "fluoroquinolones",
+            "glycopeptides", "macrolides", "nitroimidazoles",
+            "penicillin", "sulfonamides")
+
+for (abx_name in abx_ls) {
+    ind <- which(colData(vince)$antibiotics_family %>% str_detect(., abx_name))
+    colData(vince)$abx[ind] <- abx_name
+}
+
+colData(vince)$abx %>% table()
+
+## I don't understand this part <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+# vince <- subset(rayvince, select=colData(rayvince)$study_name=="VincentC_2016")
+# colData(vince)$abx <- "control"
+# #colData(vince)$abx[colData(vince)$antibiotics_family %>% str_detect("cephalosporins")] <- "cephalosporins"
+# colData(vince)$abx[!is.na(colData(vince)$antibiotics_family)] <- "cephalosporins"
+# #colData(vince)$abx[colData(vince)$antibiotics_family %>% str_detect("fluoroquinolones")] <- "cephalosporins"
+# colData(vince)$abx %>% table()
+```
+
+```{r}
+phylovince <- makePhyloseqFromTreeSummarizedExperiment(vince, abund_values = "relative_abundance")
+```
+
+```{r}
+## Extract sample and relative abundance tables
+sample.phylovince <- sample_data(phylovince)
+feat.phylovince <- otu_table(phylovince)
+
+## remove duplicate variables
+ind <- which(names(sample.phylovince) %in% 
+                 c("antibiotics_family", "antibiotics_current_use"))
+sample.phylovince <- sample.phylovince[, -ind]
+```
+
+## Modeling
+```{r}
+# Set variable of interest
+
+# # There are only 2 cephalosporins dataset when I clean up. Check with Chloe.
+# label.vince <- create.label(meta = sample.phylovince, 
+#                             label = "abx", 
+#                             case = "cephalosporins")
+
+label.vince <- create.label(meta = sample.phylovince, 
+                            label = "abx", 
+                            case = "penicillin")
+
+# Create SIAMCAT object
+sc.obj.test <- siamcat(feat = feat.phylovince, 
+                       label = label.vince, 
+                       meta = sample.phylovince)
+
+# Filter by abundance
+sc.obj.filt <- filter.features(sc.obj.test, filter.method = "abundance", cutoff = 0)
+
+# Normalization
+sc.obj.norm <- normalize.features(sc.obj.filt, norm.param = norm_params(sc.eval))
+
+## Modeling
+sc.obj.test <- make.predictions(sc.eval, sc.obj.norm)
+sc.obj.test <- evaluate.predictions(sc.obj.test)
+model.evaluation.plot(sc.obj.test)
+```
+
+```{r}
+## Split a dataset into training and test sets
+sc.vince.split <- create.data.split(
+  sc.obj.norm,
+  num.folds = 6, # cross-validation folds
+  num.resample = 2, # resample rounds
+  inseparable = "subject_id" # name of the metadata variable to be inseparable
+)
+
+## Machine learning model on the training data
+sc.vince.mod <- train.model(
+  sc.vince.split,
+  method = "randomForest"
+)
+
+## Make predictions on a test set
+sc.vince.pred <- make.predictions(sc.vince.mod)
+pred_matrix_vince <- pred_matrix(sc.vince.pred)
+
+## Compares the predictions and true labels for all samples
+sc.vince.eval <- evaluate.predictions(sc.vince.pred)
+model.evaluation.plot(sc.vince.eval)
+```
+
+```{r eval=FALSE}
+# # Figure out participant IDs that were cases and controls
+# # Not sure what this part is doing <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+# library(dplyr)
+# dsVince <- colData(vince) %>% as.data.frame()
+# dsVince$abx <- 0
+# dsVince$abx[!is.na(dsVince$antibiotics_family)] <- 1
+# cases <- dsVince %>% group_by(subject_id) %>% summarize(abx=sum(abx))
+
+control_ind <- which(colData(vince)$abx == "control")
+control_ids <- colData(vince)$subject_id[control_ind]
+case_ids <- colData(vince)$subject_id[-control_ind]
+```
+
+
+
+# Genus-Level Modeling
+## Raymond dataset
+Cephalosporins is the variable of interest for this model.
+
+```{r}
+## Load genus-level data
+rayvincegenus <- agglomerateByRank(rayvince, rank = "genus")
+
+## Subset
+rayg <- subset(rayvincegenus, 
+               select = (colData(rayvince)$study_name == "RaymondF_2016"))
+phyloray <- makePhyloseqFromTreeSummarizedExperiment(rayg, abund_values = "relative_abundance")
+sample.phyloray <- sample_data(phyloray)
+feat.phyloray <- otu_table(phyloray)
+
+## Remove duplicated variables
+rm_ind <- which(names(sample.phyloray) %in% c("antibiotics_family", "antibiotics_current_use"))
+sample.phyloray <- sample.phyloray[, -rm_ind]
+
+## Set variable of interest
+label.ray <- create.label(meta = sample.phyloray, 
+                          label = "study_condition", 
+                          case = "cephalosporins")
+
+## Create SIAMCAT object
+sc.obj <- siamcat(feat = feat.phyloray, 
+                  label = label.ray, 
+                  meta = sample.phyloray)
+
+## Filter by abundance
+sc.filt <- filter.features(sc.obj, filter.method = "abundance", cutoff = 0.001)
+
+## Normalization
+sc.norm <- normalize.features(sc.filt, norm.method = "rank.unit")
+sc.split <- create.data.split(sc.norm,
+                              num.folds = 6,
+                              num.resample = 2,
+                              inseparable = "subject_id")
+
+## Random Forest model training
+sc.mod <- train.model(sc.split, method = "randomForest")
+
+## Model evaluation
+sc.pred <- make.predictions(sc.mod)
+pred_matrix <- pred_matrix(sc.pred)
+sc.eval <- evaluate.predictions(sc.pred)
+model.evaluation.plot(sc.eval)
+```
+
+## Vincent dataset
+```{r}
+## Subset
+vinceg <- subset(rayvincegenus, 
+                 select = (colData(rayvince)$study_name == "VincentC_2016"))
+
+## Clean ABX info
+colData(vinceg)$abx <- colData(vinceg)$antibiotics_family
+colData(vinceg)$abx[which(is.na(colData(vinceg)$abx))] <- "control"
+abx_ls <- c("carbapenems", "cephalosporins", "fluoroquinolones",
+            "glycopeptides", "macrolides", "nitroimidazoles",
+            "penicillin", "sulfonamides")
+for (abx_name in abx_ls) {
+    ind <- which(colData(vinceg)$antibiotics_family %>% str_detect(., abx_name))
+    colData(vinceg)$abx[ind] <- abx_name
+}
+
+phylovince <- makePhyloseqFromTreeSummarizedExperiment(vinceg, abund_values = "relative_abundance")
+sample.phylovince <- sample_data(phylovince)
+feat.phylovince <- otu_table(phylovince)
+
+## Remove duplicated variables
+rm_ind <- which(names(sample.phylovince) %in% c("antibiotics_family", "antibiotics_current_use"))
+sample.phylovince <- sample.phylovince[, -rm_ind]
+
+## Set variable of interests
+label.vince <- create.label(meta = sample.phylovince, 
+                            label = "abx", 
+                            case = "penicillin")
+
+## Create SIAMCAT object
+sc.obj.test <- siamcat(feat = feat.phylovince, 
+                       label = label.vince, 
+                       meta = sample.phylovince)
+
+## Filter by abundance
+sc.obj.filt <- filter.features(sc.obj.test, filter.method = "abundance", cutoff = 0)
+
+## Normalization
+sc.obj.norm <- normalize.features(sc.obj.filt, norm.param = norm_params(sc.eval))
+sc.obj.test <- make.predictions(sc.eval, sc.obj.norm)
+sc.obj.test <- evaluate.predictions(sc.obj.test)
+model.evaluation.plot(sc.obj.test)
+```
